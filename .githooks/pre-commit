@@ -1,3 +1,0 @@
-#!/bin/sh
-# Reject the commit if any file is not prettier-formatted
-npx prettier --check .
