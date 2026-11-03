@@ -15,4 +15,3 @@ const server = serve({
 server.on('listening', () => {
   console.log(`Server running on http://${host}:${port}`)
 })
-

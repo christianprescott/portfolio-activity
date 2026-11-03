@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node index.ts",
     "test": "node --test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "Pi Agent",
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "prettier": "^3.9.10",
     "typescript": "^5.6.3"
   }
 }

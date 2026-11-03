@@ -5,31 +5,42 @@ import { app } from '../src/server.ts'
 // In-process tests using Hono's app.request()
 describe('Activity API (in-process)', () => {
   it('should return 200 for GET /activity', async () => {
-    const res = await app.request('http://localhost/activity', { method: 'GET' })
+    const res = await app.request('http://localhost/activity', {
+      method: 'GET',
+    })
     assert.strictEqual(res.status, 200)
     assert.strictEqual(res.headers.get('content-type'), 'application/json')
-    const body = await res.json() as {}
+    const body = (await res.json()) as {}
     assert.deepStrictEqual(body, {})
   })
 
   it('should return 404 for unknown paths', async () => {
     const res = await app.request('http://localhost/unknown', { method: 'GET' })
     assert.strictEqual(res.status, 404)
-    assert.strictEqual(res.headers.get('content-type'), 'text/plain; charset=UTF-8')
+    assert.strictEqual(
+      res.headers.get('content-type'),
+      'text/plain; charset=UTF-8',
+    )
   })
 
   it('should return 404 for POST to /activity (no method handler)', async () => {
-    const res = await app.request('http://localhost/activity', { method: 'POST' })
+    const res = await app.request('http://localhost/activity', {
+      method: 'POST',
+    })
     assert.strictEqual(res.status, 404)
   })
 
   it('should return 404 for PUT to /activity', async () => {
-    const res = await app.request('http://localhost/activity', { method: 'PUT' })
+    const res = await app.request('http://localhost/activity', {
+      method: 'PUT',
+    })
     assert.strictEqual(res.status, 404)
   })
 
   it('should return 404 for DELETE to /activity', async () => {
-    const res = await app.request('http://localhost/activity', { method: 'DELETE' })
+    const res = await app.request('http://localhost/activity', {
+      method: 'DELETE',
+    })
     assert.strictEqual(res.status, 404)
   })
 })
@@ -93,7 +104,10 @@ describe('Activity API (HTTP server)', async () => {
     try {
       const res = await fetch(`http://127.0.0.1:${port}/unknown`)
       assert.strictEqual(res.status, 404)
-      assert.strictEqual(res.headers.get('content-type'), 'text/plain; charset=UTF-8')
+      assert.strictEqual(
+        res.headers.get('content-type'),
+        'text/plain; charset=UTF-8',
+      )
     } finally {
       server.close()
       await new Promise((resolve) => server.on('close', resolve))

@@ -10,5 +10,3 @@ export const app = new Hono()
 app.get('/activity', (c) => {
   return c.json({})
 })
-
-
