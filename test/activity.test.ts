@@ -1,6 +1,33 @@
 import assert from 'node:assert'
 import { describe, it, before, after } from 'node:test'
 import { app } from '../src/server.ts'
+import { readActivity } from '../src/sessions.ts'
+
+const fixtures = new URL('./fixtures/sessions', import.meta.url).pathname
+const empty = '/nonexistent'
+process.env.PI_CODING_AGENT_SESSION_DIR = empty
+
+describe('Session reading', () => {
+  it('maps projects to their latest message', async () => {
+    const activity = await readActivity(fixtures)
+    assert.strictEqual(activity.length, 1)
+    assert.strictEqual(activity[0].project, 'pi-activity')
+    assert.match(activity[0].lastMessage, /^2026-11-03T22:32:55\.483Z$/)
+  })
+
+  it('returns nothing for a missing directory', async () => {
+    assert.deepStrictEqual(await readActivity('/nonexistent'), [])
+  })
+
+  it('serves the most recent timestamp', async () => {
+    process.env.PI_CODING_AGENT_SESSION_DIR = fixtures
+    const res = await app.request('http://localhost/activity')
+    assert.deepStrictEqual(await res.json(), {
+      lastActivity: '2026-11-03T22:32:55.483Z',
+    })
+    process.env.PI_CODING_AGENT_SESSION_DIR = empty
+  })
+})
 
 // In-process tests using Hono's app.request()
 describe('Activity API (in-process)', () => {
