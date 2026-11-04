@@ -46,6 +46,7 @@ const githubIcon = html`<svg
 
 export class PiActivity extends LitElement {
   static properties = {
+    displayName: { type: String, attribute: 'display-name' },
     state: { state: true },
   }
 
@@ -63,11 +64,7 @@ export class PiActivity extends LitElement {
     :host,
     a:link,
     a:visited {
-      color: color-mix(
-        in srgb,
-        var(--pi-activity-color) 70%,
-        transparent
-      );
+      color: color-mix(in srgb, var(--pi-activity-color) 70%, transparent);
     }
     a:hover {
       color: var(--pi-activity-color-active);
@@ -111,11 +108,7 @@ export class PiActivity extends LitElement {
 
     div.card {
       border: 1px solid
-        color-mix(
-          in srgb,
-          var(--pi-activity-border-color) 30%,
-          transparent
-        );
+        color-mix(in srgb, var(--pi-activity-border-color) 30%, transparent);
       border-radius: 0.5rem;
       padding: 1rem;
     }
@@ -129,6 +122,7 @@ export class PiActivity extends LitElement {
     }
   `
 
+  declare displayName: String
   declare state: ActivityState
 
   constructor() {
@@ -161,7 +155,7 @@ export class PiActivity extends LitElement {
       case 'activity': {
         const local = new Date(state.lastActivity).toLocaleString()
         content = html`<time datetime=${state.lastActivity}
-          >Christian was writing code at: ${local}</time
+          >${this.displayName} was writing code at: ${local}</time
         >`
         break
       }
@@ -169,15 +163,15 @@ export class PiActivity extends LitElement {
         content = nothing
     }
     return html`<div class="grid card gap">
-          <div class="flex">
-            <div class="indicator absolute ping"></div>
-            <div class="indicator"></div>
-          </div>
-          <!-- TODO: project title -->
-          <!-- <div class="mono bold">project</div> -->
-        <div>${content}</div>
-        <!-- TODO: link to github -->
-        <!-- <a class="mono" href="#">
+      <div class="flex">
+        <div class="indicator absolute ping"></div>
+        <div class="indicator"></div>
+      </div>
+      <!-- TODO: project title -->
+      <!-- <div class="mono bold">project</div> -->
+      <div>${content}</div>
+      <!-- TODO: link to github -->
+      <!-- <a class="mono" href="#">
           ${githubIcon}repo
         </a> -->
     </div>`
