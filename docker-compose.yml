@@ -6,4 +6,15 @@ services:
     environment:
       - PORT=3000
       - HOST=0.0.0.0
+    volumes:
+      - ./public:/app/public
     restart: unless-stopped
+
+  dev:
+    build: .
+    command: npm run dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - '8000:8000'

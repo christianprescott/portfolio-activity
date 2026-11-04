@@ -50,6 +50,5 @@ app.doc31('/openapi.json', {
 // Serve Swagger UI docs at /docs
 app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 
-// Static assets: built component under /dist, pages under /public (last, so routes above win)
-app.use('/dist/*', serveStatic({ root: './' }))
+// Static assets: pages and the built component (public/dist), last so routes above win
 app.use('/*', serveStatic({ root: './public' }))
