@@ -49,5 +49,5 @@ services:
 ### Tests
 
 ```sh
-docker compose run --rm pi-activity npm test
+docker compose run --rm app npm test
 ```

@@ -7,7 +7,7 @@ describe('Static assets (in-process)', () => {
     const res = await app.request('http://localhost/', { method: 'GET' })
     assert.strictEqual(res.status, 200)
     assert.match(res.headers.get('content-type') ?? '', /^text\/html/)
-    assert.match(await res.text(), /<pi-activity>/)
+    assert.match(await res.text(), /<pi-activity[\s>]/)
   })
 
   it('should return 404 for a missing file under /dist', async () => {
