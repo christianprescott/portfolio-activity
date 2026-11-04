@@ -5,16 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pi Activity</title>
     <script type="module" src="/dist/pi-activity.js"></script>
-    <style>
-      pi-activity {
-        --pi-activity-border-color: rebeccapurple;
-        max-width: 20rem;
-      }
-    </style>
+    <!-- TODO: include fonts in build then remove from here -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond&family=Fragment+Mono&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <h1>Pi Activity</h1>
-    <pi-activity></pi-activity>
+    <h1>pi-activity</h1>
+
+    <!--
+    Render sample code in a textarea, then render the result of that code below. A simple interactive editor and documentation of CSS vars.
+    -->
+    <textarea id="code" rows="12" cols="60" autocomplete="off">
+      <style>
+        pi-activity {
+          /*--pi-activity-font-serif: serif;*/
+          /*--pi-activity-font-mono: monospace;*/
+          --pi-activity-color: currentColor;
+          --pi-activity-color-success: #00ff93;
+          --pi-activity-color-active: #009fff;
+          --pi-activity-border-color: currentColor;
+        }
+      </style>
+      <pi-activity></pi-activity>
+    </textarea>
+    <button id="reset" type="button">Reset</button>
+    <div id="preview"></div>
+    <script type="module">
+      const code = document.getElementById('code')
+      const preview = document.getElementById('preview')
+      const reset = document.getElementById('reset')
+      const defaultCode = code.value
+      let timer
+      const render = () => {
+        preview.innerHTML = code.value
+      }
+      code.addEventListener('input', () => {
+        clearTimeout(timer)
+        timer = setTimeout(render, 400)
+      })
+      reset.addEventListener('click', () => {
+        code.value = defaultCode
+        render()
+      })
+      render()
+    </script>
+
     <p><a href="/docs">API docs</a></p>
   </body>
 </html>

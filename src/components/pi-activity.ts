@@ -53,8 +53,10 @@ export class PiActivity extends LitElement {
     :host {
       --pi-activity-font-serif: 'EB Garamond', Georgia, serif;
       --pi-activity-font-mono: 'Fragment Mono', ui-monospace, monospace;
+      --pi-activity-color: currentColor;
       --pi-activity-color-success: #00ff93;
       --pi-activity-color-active: #009fff;
+      --pi-activity-border-color: currentColor;
       display: block;
       font-family: var(--pi-activity-font-serif);
     }
@@ -63,7 +65,7 @@ export class PiActivity extends LitElement {
     a:visited {
       color: color-mix(
         in srgb,
-        var(--pi-activity-border-color, currentColor) 70%,
+        var(--pi-activity-color) 70%,
         transparent
       );
     }
@@ -108,7 +110,7 @@ export class PiActivity extends LitElement {
       border: 1px solid
         color-mix(
           in srgb,
-          var(--pi-activity-border-color, currentColor) 30%,
+          var(--pi-activity-border-color) 30%,
           transparent
         );
       border-radius: 0.5rem;
