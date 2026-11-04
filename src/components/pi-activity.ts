@@ -1,34 +1,12 @@
 // Shows the most recent activity timestamp from the /activity API.
 
+import { LitElement, css, html, nothing } from 'lit'
+
 type ActivityState =
   | { type: 'loading' }
   | { type: 'unavailable' }
   | { type: 'empty' }
   | { type: 'activity'; lastActivity: string }
-
-const escapeHtml = (value: string) =>
-  value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
-
-const render = (state: ActivityState): string => {
-  switch (state.type) {
-    case 'loading':
-      return 'Loading…'
-    case 'unavailable':
-      return 'Unavailable'
-    case 'empty':
-      return 'No activity'
-    case 'activity': {
-      const iso = escapeHtml(state.lastActivity)
-      const local = escapeHtml(new Date(state.lastActivity).toLocaleString())
-      return `<time datetime="${iso}">${local}</time>`
-    }
-  }
-}
 
 const scriptOrigin = new URL(import.meta.url).origin
 
@@ -52,20 +30,61 @@ const fetchActivity = async (base: string): Promise<ActivityState> => {
   }
 }
 
-export class PiActivity extends HTMLElement {
+export class PiActivity extends LitElement {
+  static properties = {
+    state: { state: true },
+  }
+
+  static styles = css`
+    :host {
+      display: block;
+    }
+    div {
+      border: 2px solid var(--pi-activity-border-color, currentColor);
+      padding: 0.5rem;
+    }
+  `
+
+  declare state: ActivityState
+
   constructor() {
     super()
-    this.attachShadow({ mode: 'open' })
+    this.state = { type: 'loading' }
   }
 
   connectedCallback() {
+    super.connectedCallback()
     const base = (this.getAttribute('src') || scriptOrigin).replace(/\/$/, '')
-    this.update({ type: 'loading' })
-    fetchActivity(base).then((state) => this.update(state))
+    this.state = { type: 'loading' }
+    fetchActivity(base).then((state) => {
+      this.state = state
+    })
   }
 
-  private update(state: ActivityState) {
-    this.shadowRoot!.innerHTML = render(state)
+  render() {
+    const state = this.state
+    let content
+    switch (state.type) {
+      case 'loading':
+        content = html`Loading…`
+        break
+      case 'unavailable':
+        content = html`Unavailable`
+        break
+      case 'empty':
+        content = html`No activity`
+        break
+      case 'activity': {
+        const local = new Date(state.lastActivity).toLocaleString()
+        content = html`<time datetime=${state.lastActivity}
+          >Timer: ${local}</time
+        >`
+        break
+      }
+      default:
+        content = nothing
+    }
+    return html`<div>${content}</div>`
   }
 }
 

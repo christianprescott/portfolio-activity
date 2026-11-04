@@ -51,4 +51,3 @@ services:
 ```sh
 docker compose run --rm pi-activity npm test
 ```
-
