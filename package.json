@@ -16,7 +16,10 @@
   "license": "MIT",
   "dependencies": {
     "@hono/node-server": "^1.13.5",
-    "hono": "^4.6.11"
+    "@hono/swagger-ui": "^0.6.2",
+    "@hono/zod-openapi": "^1.6.3",
+    "hono": "^4.13.16",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
