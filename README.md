@@ -24,22 +24,18 @@ Configure pi-activity's environment and behavior.
 
 ## Development
 
-Start the web server and the component dev server. Visit the app root to preview the component UI.
+Start the web server and the frontend dev server. Visit the app root to preview the component UI.
 
 ```sh
 docker compose up --build
 open http://localhost:3000
 ```
 
-### Component dev server
+### esbuild
 
-The `dev` service runs esbuild in watch mode with live reload on port 8000. It serves `public/` and the bundle at `/dist/pi-activity.js`, built in memory. Port 3000 serves the production build from the image.
+An unconventional method is used to serve dev mode assets from the same host as the server: two esbuild processes run, one to write changes to disk and one to serve the EventSource after build.
 
-```sh
-open http://localhost:8000
-```
-
-esbuild only accepts the `Host` header `localhost`, or the name given to `--serve`. To use another hostname, set `DEV_HOST` and map the name to `0.0.0.0` in `docker-compose.override.yml`:
+To enable live reload on a named host you'll need to set the DEV_HOST variable:
 
 ```yaml
 services:
@@ -49,8 +45,6 @@ services:
     extra_hosts:
       - 'dev.example.test:0.0.0.0'
 ```
-
-Pages served from port 8000 need the `src` attribute to reach the API, for example `<pi-activity src="http://localhost:3000">`.
 
 ### Tests
 
