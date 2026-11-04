@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node index.ts",
     "test": "node --test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p src/components",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
