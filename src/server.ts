@@ -5,6 +5,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import pkg from '../package.json' with { type: 'json' }
 import { mostRecent, readActivity } from './sessions.ts'
 import { swaggerUI } from '@hono/swagger-ui'
+import { serveStatic } from '@hono/node-server/serve-static'
 
 // Activity response: empty when there is no activity
 export const Activity = z
@@ -48,3 +49,7 @@ app.doc31('/openapi.json', {
 
 // Serve Swagger UI docs at /docs
 app.get('/docs', swaggerUI({ url: '/openapi.json' }))
+
+// Static assets: built component under /dist, pages under /public (last, so routes above win)
+app.use('/dist/*', serveStatic({ root: './' }))
+app.use('/*', serveStatic({ root: './public' }))

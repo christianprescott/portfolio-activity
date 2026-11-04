@@ -7,6 +7,8 @@ RUN npm ci
 
 COPY tsconfig.json index.ts ./
 COPY src ./src
+COPY public ./public
+RUN npm run build
 COPY test ./test
 
 ENV HOST=0.0.0.0

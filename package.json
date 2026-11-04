@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.ts",
+    "build": "esbuild src/components/pi-activity.ts --bundle --format=esm --minify --outfile=dist/pi-activity.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p src/components",
     "format": "prettier --write .",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
     "prettier": "^3.9.10",
     "typescript": "^5.6.3"
   }
