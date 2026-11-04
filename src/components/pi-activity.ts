@@ -85,6 +85,9 @@ export class PiActivity extends LitElement {
     .absolute {
       position: absolute;
     }
+    .flex {
+      display: flex;
+    }
     .grid {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -166,7 +169,7 @@ export class PiActivity extends LitElement {
         content = nothing
     }
     return html`<div class="grid card gap">
-          <div>
+          <div class="flex">
             <div class="indicator absolute ping"></div>
             <div class="indicator"></div>
           </div>
