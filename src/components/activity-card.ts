@@ -18,13 +18,11 @@ const githubIcon = html`<svg
 export class ActivityCard extends LitElement {
   static properties = {
     activeAt: { attribute: false },
-    source: { type: String },
     text: { type: String },
     title: { type: String },
   }
 
   declare activeAt: Date
-  declare source: string | undefined
   declare text: string
   declare title: string
 
@@ -76,7 +74,7 @@ export class ActivityCard extends LitElement {
       </div>
       ${this.title ? html`<div class="mono bold">${this.title}</div>` : nothing}
       <div>
-        <slot></slot>${this.source ? ` ${this.source}` : nothing}
+        <slot></slot>
       </div>
       <!-- TODO: link to github -->
       <!--<a class="mono" href="#">
