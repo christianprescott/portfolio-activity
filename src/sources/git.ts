@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { lstat, readFile, readdir } from 'node:fs/promises'
 import git from 'isomorphic-git'
 import { basename, join, resolve } from 'node:path'
-import type { Activity } from './activity.ts'
+import type { Activity } from '../activity.ts'
 
 const readDir = async (directory: string) => {
   try {

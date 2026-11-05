@@ -6,8 +6,8 @@ import { join } from 'node:path'
 import { describe, it, before } from 'node:test'
 import git from 'isomorphic-git'
 import { app } from '../src/server.ts'
-import { readPiActivity } from '../src/pi.ts'
-import { readGitActivity } from '../src/git.ts'
+import { readPiActivity } from '../src/sources/pi.ts'
+import { readGitActivity } from '../src/sources/git.ts'
 
 const createRepo = async (repo: string, timestamp: string) => {
   await mkdir(repo, { recursive: true })

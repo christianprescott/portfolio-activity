@@ -3,8 +3,8 @@
 import { serve } from '@hono/node-server'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import pkg from '../package.json' with { type: 'json' }
-import { readPiActivity } from './pi.ts'
-import { readGitActivity } from './git.ts'
+import { readPiActivity } from './sources/pi.ts'
+import { readGitActivity } from './sources/git.ts'
 import { swaggerUI } from '@hono/swagger-ui'
 import { serveStatic } from '@hono/node-server/serve-static'
 

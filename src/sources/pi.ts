@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs'
-import type { Activity } from './activity.ts'
+import type { Activity } from '../activity.ts'
 import { readdir } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, join } from 'node:path'
