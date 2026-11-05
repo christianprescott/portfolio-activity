@@ -12,6 +12,26 @@ export class LoadingCard extends LitElement {
           visibility: hidden;
         }
       }
+      .loading,
+      .indicator {
+        background-image: linear-gradient(
+          100deg,
+          transparent 20%,
+          color-mix(in srgb, var(--pi-activity-color, currentColor) 20%, Canvas)
+            50%,
+          transparent 80%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        from {
+          background-position: 100% 0;
+        }
+        to {
+          background-position: -100% 0;
+        }
+      }
       .w-12 {
         width: 70%;
         min-width: 6rem;
