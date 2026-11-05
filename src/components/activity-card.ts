@@ -1,4 +1,5 @@
 import { LitElement, css, html, nothing } from 'lit'
+import { cardStyles } from './card-styles.ts'
 
 // GitHub mark, from the MIT-licensed Octicons set:
 // https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg
@@ -21,83 +22,55 @@ export class ActivityCard extends LitElement {
   }
 
   declare activeAt: Date
-  declare text: String
+  declare text: string
 
-  static styles = css`
-    a:link,
-    a:visited {
-      color: color-mix(in srgb, var(--pi-activity-color) 70%, transparent);
-    }
-    a:hover {
-      color: var(--pi-activity-color-active);
-    }
-    a svg {
-      margin-inline-end: 0.25rem;
-    }
-
-    .mono {
-      font-family: var(--pi-activity-font-mono);
-    }
-    .bold {
-      font-weight: bold;
-    }
-    .absolute {
-      position: absolute;
-    }
-    .flex {
-      display: flex;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: auto 1fr;
-    }
-    .grid > :nth-child(n + 3) {
-      grid-column: span 2;
-    }
-    .gap {
-      gap: 0.5rem;
-    }
-    .ping {
-      animation: ping 5s cubic-bezier(0, 0, 0.2, 1) infinite;
-    }
-    @keyframes ping {
-      20%,
-      100% {
-        transform: scale(3);
-        opacity: 0;
+  static styles = [
+    cardStyles,
+    css`
+      a:link,
+      a:visited {
+        color: var(--pi-activity-color);
       }
-    }
+      a:hover {
+        color: var(--pi-activity-color-active);
+      }
+      a svg {
+        margin-inline-end: 0.25rem;
+      }
 
-    div.card {
-      border: 1px solid
-        color-mix(in srgb, var(--pi-activity-border-color) 30%, transparent);
-      border-radius: 0.5rem;
-      padding: 1rem;
-    }
-    div.indicator {
-      background-color: #888;
-      border-radius: 30%;
-      aspect-ratio: 1/1;
-      display: inline-block;
-      align-self: center;
-      height: 1rem;
-    }
-    .indicator.active {
-      background-color: var(--pi-activity-color-success);
-    }
-  `
+      .mono {
+        font-family: var(--pi-activity-font-mono);
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .ping {
+        animation: ping 5s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      @keyframes ping {
+        20%,
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+
+      .indicator.active {
+        background-color: var(--pi-activity-color-success);
+      }
+    `,
+  ]
 
   render() {
     const twentyMinutesAgo = Date.now() - 20 * 60 * 1000
     const ninetyMinutesAgo = Date.now() - 90 * 60 * 1000
     return html`<div class="grid card gap">
       <div class="flex">
-        ${this.activeAt?.getTime() > twentyMinutesAgo ? html`<div class="indicator absolute ping"></div>` : nothing}
+        ${this.activeAt?.getTime() > twentyMinutesAgo ? html`<div class="indicator active absolute ping"></div>` : nothing}
         ${this.activeAt?.getTime() > ninetyMinutesAgo ? html`<div class="indicator active"></div>` : nothing}
-        ${!this.activeAt ? html`<div class="indicator"></div>` : nothing}
+        ${!this.activeAt || this.activeAt?.getTime() < ninetyMinutesAgo ? html`<div class="indicator"></div>` : nothing}
       </div>
-      <!-- TODO: project title -->
-      <!-- <div class="mono bold">project</div> -->
+      <div class="mono bold">project</div>
       <div>
         <slot></slot>
       </div>
