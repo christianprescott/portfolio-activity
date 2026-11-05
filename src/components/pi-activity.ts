@@ -2,32 +2,26 @@
 
 import { LitElement, css, html, nothing } from 'lit'
 
-type ActivityState =
-  | { type: 'loading' }
-  | { type: 'unavailable' }
-  | { type: 'empty' }
-  | { type: 'activity'; lastActivity: string }
+type Activity = {
+  activeAt: String
+}
+type ActivityState = {
+  loading: Boolean,
+  errorText: String | undefined,
+  activities: Activity[],
+}
 
 const scriptOrigin = new URL(import.meta.url).origin
 
-// Maps the /activity body to a state. Invalid timestamps are unavailable.
-const toState = (body: unknown): ActivityState => {
+const fetchActivity = async (base: string): Promise<String> => {
+  const res = await fetch(`${base}/activity`)
+  if (!res.ok) throw `${res.status} ${res.statusText}`
+  const body = await res.json()
   const last = (body as { lastActivity?: unknown } | null)?.lastActivity
-  if (last === undefined) return { type: 'empty' }
   if (typeof last === 'string' && !Number.isNaN(Date.parse(last))) {
-    return { type: 'activity', lastActivity: last }
+    return last
   }
-  return { type: 'unavailable' }
-}
-
-const fetchActivity = async (base: string): Promise<ActivityState> => {
-  try {
-    const res = await fetch(`${base}/activity`)
-    if (!res.ok) return { type: 'unavailable' }
-    return toState(await res.json())
-  } catch {
-    return { type: 'unavailable' }
-  }
+  throw 'No activity'
 }
 
 // GitHub mark, from the MIT-licensed Octicons set:
@@ -127,54 +121,47 @@ export class PiActivity extends LitElement {
 
   constructor() {
     super()
-    this.state = { type: 'loading' }
+    this.state = {
+      loading: true,
+      errorText: undefined,
+      activities: [],
+    }
   }
 
   connectedCallback() {
     super.connectedCallback()
     const base = (this.getAttribute('src') || scriptOrigin).replace(/\/$/, '')
-    this.state = { type: 'loading' }
-    fetchActivity(base).then((state) => {
-      this.state = state
+    fetchActivity(base).then((last) => {
+      this.state = { loading: false, errorText: undefined, activities: [{ activeAt: last }] }
+    }).catch((e) => {
+      console.error(e)
     })
   }
 
   render() {
-    const state = this.state
-    let content
-    switch (state.type) {
-      case 'loading':
-        content = html`Loading…`
-        break
-      case 'unavailable':
-        content = html`Unavailable`
-        break
-      case 'empty':
-        content = html`No activity`
-        break
-      case 'activity': {
-        const local = new Date(state.lastActivity).toLocaleString()
-        content = html`<time datetime=${state.lastActivity}
-          >${this.displayName} was writing code at: ${local}</time
-        >`
-        break
-      }
-      default:
-        content = nothing
-    }
-    return html`<div class="grid card gap">
-      <div class="flex">
-        <div class="indicator absolute ping"></div>
-        <div class="indicator"></div>
-      </div>
-      <!-- TODO: project title -->
-      <!-- <div class="mono bold">project</div> -->
-      <div>${content}</div>
-      <!-- TODO: link to github -->
-      <!-- <a class="mono" href="#">
-          ${githubIcon}repo
-        </a> -->
-    </div>`
+    const activities: Activity[] = this.state.loading
+      ? []
+      : this.state.activities
+    return activities.map((a) => {
+      const local = new Date(a.activeAt).toLocaleString()
+      return html`<div class="grid card gap">
+        <div class="flex">
+          <div class="indicator absolute ping"></div>
+          <div class="indicator"></div>
+        </div>
+        <!-- TODO: project title -->
+        <!-- <div class="mono bold">project</div> -->
+        <div>
+          <time datetime=${a.activeAt}
+            >${this.displayName} was writing code at: ${local}</time
+          >
+        </div>
+        <!-- TODO: link to github -->
+        <!-- <a class="mono" href="#">
+            ${githubIcon}repo
+          </a> -->
+      </div>`
+    })
   }
 }
 

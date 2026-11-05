@@ -35,23 +35,23 @@
     <button id="reset" type="button">Reset</button>
     <div id="preview"></div>
     <script type="module">
-      const code = document.getElementById('code')
-      const preview = document.getElementById('preview')
-      const reset = document.getElementById('reset')
-      const defaultCode = code.value
-      let timer
+      const code = document.getElementById("code");
+      const preview = document.getElementById("preview");
+      const reset = document.getElementById("reset");
+      const defaultCode = code.value;
+      let timer;
       const render = () => {
-        preview.innerHTML = code.value
-      }
-      code.addEventListener('input', () => {
-        clearTimeout(timer)
-        timer = setTimeout(render, 400)
-      })
-      reset.addEventListener('click', () => {
-        code.value = defaultCode
-        render()
-      })
-      render()
+        preview.innerHTML = code.value;
+      };
+      code.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(render, 400);
+      });
+      reset.addEventListener("click", () => {
+        code.value = defaultCode;
+        render();
+      });
+      render();
     </script>
 
     <p><a href="/docs">API docs</a></p>
