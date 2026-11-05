@@ -10,6 +10,23 @@ describe('Static assets (in-process)', () => {
     assert.match(await res.text(), /<pi-activity[\s>]/)
   })
 
+  it('documents the activity count query parameter in OpenAPI', async () => {
+    const res = await app.request('http://localhost/openapi.json')
+    assert.strictEqual(res.status, 200)
+    const spec = (await res.json()) as {
+      paths: {
+        '/activity': {
+          get: { parameters: { name: string; in: string }[] }
+        }
+      }
+    }
+    assert.ok(
+      spec.paths['/activity'].get.parameters.some(
+        ({ name, in: location }) => name === 'count' && location === 'query',
+      ),
+    )
+  })
+
   it('should return 404 for a missing file under /dist', async () => {
     const res = await app.request('http://localhost/dist/missing.js', {
       method: 'GET',

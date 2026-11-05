@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit'
-import type { ActivitySource } from './pi-activity.ts'
+import type { ActivitySource } from './activity-source.ts'
 
 const recentActivityDuration = 20 * 60_000
 const relativeTimeUnits = [

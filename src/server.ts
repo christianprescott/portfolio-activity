@@ -26,10 +26,18 @@ const getActivity = createRoute({
   path: '/activity',
   operationId: 'getActivity',
   summary: 'Get the most recent activity for each project',
+  request: {
+    query: z.object({
+      count: z.coerce.number().int().min(1).max(100).default(10).openapi({
+        description: 'Maximum number of activities to return (1–100).',
+        example: 6,
+      }),
+    }),
+  },
   responses: {
     200: {
       description:
-        'The most recent activity for each project, ordered from most recent to oldest. An empty array when no activity is found.',
+        'Up to count activities, ordered from most recent to oldest (default 10, maximum 100). An empty array when no activity is found.',
       content: {
         'application/json': { schema: Activity },
       },
@@ -42,17 +50,20 @@ export const app = new OpenAPIHono()
 
 // GET /activity endpoint
 app.openapi(getActivity, async (c) => {
+  const { count } = c.req.valid('query')
   const sources = await Promise.all([readPiActivity(), readGitActivity()])
-  const activity = sources.flat().sort((a, b) =>
-    b.activeAt.localeCompare(a.activeAt),
-  )
+  const activity = sources
+    .flat()
+    .sort((a, b) => b.activeAt.localeCompare(a.activeAt))
   const projects = new Map<string, (typeof activity)[number][]>()
   activity.forEach((entry) => {
     const group = projects.get(entry.title)
     if (group) group.push(entry)
     else projects.set(entry.title, [entry])
   })
-  const response = [...projects.values()].map(([latest]) => latest)
+  const response = [...projects.values()]
+    .map(([latest]) => latest)
+    .slice(0, count)
   return c.json(response, 200)
 })
 

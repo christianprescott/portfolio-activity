@@ -94,9 +94,29 @@ describe('Session reading', () => {
           },
         ],
       )
+
+      const limited = await app.request('http://localhost/activity?count=1')
+      assert.deepStrictEqual(await limited.json(), [
+        {
+          title: 'newer',
+          source: 'pi',
+          activeAt: '2026-11-04T12:00:00.000Z',
+        },
+      ])
     } finally {
       process.env.PI_CODING_AGENT_SESSION_DIR = originalDir
       await rm(dir, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('Activity count query', () => {
+  it('rejects counts outside the supported positive integer range', async () => {
+    for (const count of ['0', '-1', '1.5', '101', 'nope']) {
+      const res = await app.request(
+        `http://localhost/activity?count=${encodeURIComponent(count)}`,
+      )
+      assert.strictEqual(res.status, 400, `count=${count}`)
     }
   })
 })
@@ -347,17 +367,14 @@ describe('Activity API (in-process)', () => {
       )
       await Promise.all([
         createRepo(join(projectsDir, 'shared'), '2025-01-07T00:00:00.000Z'),
-        createRepo(
-          join(projectsDir, 'collision'),
-          '2025-01-07T00:00:00.000Z',
-        ),
+        createRepo(join(projectsDir, 'collision'), '2025-01-07T00:00:00.000Z'),
         createRepo(join(projectsDir, 'beta'), '2025-01-09T00:00:00.000Z'),
       ])
       process.env.PI_CODING_AGENT_SESSION_DIR = sessionsDir
       process.env.PI_ACTIVITY_PROJECT_DIR = projectsDir
 
       const res = await app.request('http://localhost/activity')
-      assert.deepStrictEqual(await res.json(), [
+      const expected = [
         {
           title: 'beta',
           source: 'git',
@@ -378,7 +395,11 @@ describe('Activity API (in-process)', () => {
           source: 'pi',
           activeAt: '2025-01-06T00:00:00.000Z',
         },
-      ])
+      ]
+      assert.deepStrictEqual(await res.json(), expected)
+
+      const limited = await app.request('http://localhost/activity?count=4')
+      assert.deepStrictEqual(await limited.json(), expected)
     } finally {
       if (originalSessionDir === undefined)
         delete process.env.PI_CODING_AGENT_SESSION_DIR

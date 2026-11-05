@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it, type TestContext } from 'node:test'
 import { ActivityMessage } from '../src/components/activity-message.ts'
-import type { ActivitySource } from '../src/components/pi-activity.ts'
+import type { ActivitySource } from '../src/components/activity-source.ts'
 
 const now = Date.parse('2026-11-04T12:00:00.000Z')
 const displayName = 'Ada'

@@ -1,11 +1,12 @@
 // Shows the most recent activity timestamp from the /activity API.
 
 import { LitElement, css, html } from 'lit'
+import type { ActivitySource } from './activity-source.ts'
 import './activity-card.ts'
 import './activity-message.ts'
 import './loading-card.ts'
 
-export type ActivitySource = 'pi' | 'git'
+export type { ActivitySource } from './activity-source.ts'
 
 type Activity = {
   title: string
@@ -21,18 +22,23 @@ type ActivityState = {
 
 const scriptOrigin = new URL(import.meta.url).origin
 
-const fetchActivities = async (base: string): Promise<Activity[]> => {
-  const res = await fetch(`${base}/activity`)
+const fetchActivities = async (
+  base: string,
+  count: number,
+): Promise<Activity[]> => {
+  const query = new URLSearchParams({ count: String(count) })
+  const res = await fetch(`${base}/activity?${query}`)
   // TODO: throw error class
   if (!res.ok) throw `${res.status} ${res.statusText}`
   // TODO: use openapi client
-  const body = await res.json()
-  return body
+  return (await res.json()) as Activity[]
 }
 
 export class PiActivity extends LitElement {
   static properties = {
     displayName: { type: String, attribute: 'display-name' },
+    count: { type: Number },
+    src: { type: String },
     state: { state: true },
   }
 
@@ -55,10 +61,12 @@ export class PiActivity extends LitElement {
   `
 
   declare displayName: string
+  declare count: number
+  declare src: string | undefined
   declare state: ActivityState
-
   constructor() {
     super()
+    this.count = 10
     this.state = {
       loading: true,
       errorText: undefined,
@@ -68,8 +76,12 @@ export class PiActivity extends LitElement {
 
   connectedCallback() {
     super.connectedCallback()
-    const base = (this.getAttribute('src') || scriptOrigin).replace(/\/$/, '')
-    fetchActivities(base)
+    this.loadActivities()
+  }
+
+  private loadActivities() {
+    const base = (this.src || scriptOrigin).replace(/\/$/, '')
+    fetchActivities(base, this.count)
       .then((activities) => {
         this.state = {
           loading: false,
