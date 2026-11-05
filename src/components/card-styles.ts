@@ -3,7 +3,7 @@ import { css } from 'lit'
 export const cardStyles = css`
   .grid {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
   }
   .grid > :nth-child(n + 3) {
     grid-column: span 2;
@@ -22,7 +22,6 @@ export const cardStyles = css`
     border-radius: 30%;
     aspect-ratio: 1 / 1;
     display: inline-block;
-    align-self: center;
     height: 1lh;
   }
   .flex {
