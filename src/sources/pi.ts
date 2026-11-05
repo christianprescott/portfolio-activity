@@ -38,7 +38,7 @@ export const readPiActivity = async (
 ): Promise<Activity[]> => {
   const projectDirs = (await readDirOrEmpty(dir)).filter((d) => d.isDirectory())
   const projects = await Promise.all(
-    projectDirs.map(async (pd) => {
+    projectDirs.map(async (pd): Promise<Activity | undefined> => {
       const path = join(dir, pd.name)
       const files = (await readDirOrEmpty(path)).filter(
         (f) => f.isFile() && f.name.endsWith('.jsonl'),

@@ -20,11 +20,13 @@ export class ActivityCard extends LitElement {
     activeAt: { attribute: false },
     text: { type: String },
     title: { type: String },
+    repoUrl: { type: String },
   }
 
   declare activeAt: Date
   declare text: string
   declare title: string
+  declare repoUrl: string | undefined
 
   static styles = [
     cardStyles,
@@ -76,10 +78,17 @@ export class ActivityCard extends LitElement {
       <div>
         <slot></slot>
       </div>
-      <!-- TODO: link to github -->
-      <!--<a class="mono" href="#">
-          ${githubIcon}repo
-          </a>-->
+      ${
+        this.repoUrl
+          ? html`<a
+              class="mono"
+              href=${this.repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              >${githubIcon}repo</a
+            >`
+          : nothing
+      }
     </div>`
   }
 }

@@ -16,6 +16,54 @@ const readDir = async (directory: string) => {
 const isNotFound = (error: unknown): boolean =>
   error instanceof git.Errors.NotFoundError
 
+const githubCandidate = (remote: string): string | undefined => {
+  let path: string | undefined
+  const scp = /^git@github\.com:([^?#]+)$/i.exec(remote)
+
+  if (scp) {
+    path = scp[1]
+  } else {
+    try {
+      const url = new URL(remote)
+      if (
+        url.hostname.toLowerCase() !== 'github.com' ||
+        !['https:', 'ssh:'].includes(url.protocol) ||
+        (url.protocol === 'ssh:' && url.username !== 'git') ||
+        (url.protocol === 'https:' && url.username) ||
+        url.password ||
+        (url.port && url.port !== (url.protocol === 'https:' ? '443' : '22')) ||
+        url.search ||
+        url.hash
+      )
+        return undefined
+      path = url.pathname.replace(/^\//, '')
+    } catch {
+      return undefined
+    }
+  }
+
+  const parts = path.split('/')
+  if (parts.length !== 2) return undefined
+  try {
+    const [owner, rawRepository] = parts.map(decodeURIComponent)
+    const repository = rawRepository.replace(/\.git$/i, '')
+    if (
+      !owner ||
+      !repository ||
+      !/^[A-Za-z0-9_.-]+$/.test(owner) ||
+      !/^[A-Za-z0-9_.-]+$/.test(repository) ||
+      owner === '.' ||
+      owner === '..' ||
+      repository === '.' ||
+      repository === '..'
+    )
+      return undefined
+    return `${owner}/${repository}`
+  } catch {
+    return undefined
+  }
+}
+
 const readRepositoryActivity = async (
   directory: string,
 ): Promise<Activity[]> => {
@@ -53,6 +101,11 @@ const readRepositoryActivity = async (
   const [commit] = commits
   if (!commit) throw new Error(`HEAD has no commit in repository ${directory}`)
 
+  const remotes = await git.listRemotes({ fs, dir: directory })
+  const repoUrl = remotes
+    .map(({ url }) => githubCandidate(url))
+    .find((candidate): candidate is string => Boolean(candidate))
+
   return [
     {
       title: basename(directory),
@@ -60,6 +113,7 @@ const readRepositoryActivity = async (
       activeAt: new Date(
         commit.commit.committer.timestamp * 1000,
       ).toISOString(),
+      ...(repoUrl ? { repoUrl } : {}),
     },
   ]
 }

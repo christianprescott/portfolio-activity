@@ -9,9 +9,10 @@ import './loading-card.ts'
 export type { ActivitySource } from './activity-source.ts'
 
 type Activity = {
-  title: string
+  title?: string
   source: ActivitySource
   activeAt: string
+  repoUrl?: string
 }
 
 type ActivityState = {
@@ -113,7 +114,11 @@ export class PiActivity extends LitElement {
     } else {
       return this.state.activities.map((a) => {
         const local = new Date(a.activeAt)
-        return html`<activity-card title=${a.title} .activeAt=${local}>
+        return html`<activity-card
+          title=${a.title}
+          .repoUrl=${a.repoUrl}
+          .activeAt=${local}
+        >
           <activity-message
             .displayName=${this.displayName}
             .source=${a.source}

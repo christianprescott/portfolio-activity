@@ -8,6 +8,14 @@ import git from 'isomorphic-git'
 import { app } from '../src/server.ts'
 import { readPiActivity } from '../src/sources/pi.ts'
 import { readGitActivity } from '../src/sources/git.ts'
+import { verifyPublicGitHubRepository } from '../src/sources/github.ts'
+
+const gitActivity = (title: string, activeAt: string, repoUrl?: string) => ({
+  title,
+  source: 'git',
+  activeAt,
+  ...(repoUrl ? { repoUrl } : {}),
+})
 
 const createRepo = async (repo: string, timestamp: string) => {
   await mkdir(repo, { recursive: true })
@@ -75,33 +83,21 @@ describe('Session reading', () => {
 
       const res = await app.request('http://localhost/activity')
       const activity = (await res.json()) as {
-        title: string
+        title?: string
         source: string
         activeAt: string
       }[]
       assert.deepStrictEqual(
         activity.filter(({ source }) => source === 'pi'),
         [
-          {
-            title: 'newer',
-            source: 'pi',
-            activeAt: '2026-11-04T12:00:00.000Z',
-          },
-          {
-            title: 'older',
-            source: 'pi',
-            activeAt: '2026-11-03T22:32:55.483Z',
-          },
+          { source: 'pi', activeAt: '2026-11-04T12:00:00.000Z' },
+          { source: 'pi', activeAt: '2026-11-03T22:32:55.483Z' },
         ],
       )
 
       const limited = await app.request('http://localhost/activity?count=1')
       assert.deepStrictEqual(await limited.json(), [
-        {
-          title: 'newer',
-          source: 'pi',
-          activeAt: '2026-11-04T12:00:00.000Z',
-        },
+        { source: 'pi', activeAt: '2026-11-04T12:00:00.000Z' },
       ])
     } finally {
       process.env.PI_CODING_AGENT_SESSION_DIR = originalDir
@@ -112,7 +108,7 @@ describe('Session reading', () => {
 
 describe('Activity count query', () => {
   it('rejects counts outside the supported positive integer range', async () => {
-    for (const count of ['0', '-1', '1.5', '101', 'nope']) {
+    for (const count of ['0', '-1', '1.5', '11', 'nope']) {
       const res = await app.request(
         `http://localhost/activity?count=${encodeURIComponent(count)}`,
       )
@@ -122,6 +118,98 @@ describe('Activity count query', () => {
 })
 
 describe('Git activity', () => {
+  it('stores the first normalized GitHub remote as an unverified repoUrl', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-git-remotes-'))
+    const repo = join(dir, 'project')
+    try {
+      await createRepo(repo, '2025-01-01T00:00:00Z')
+      await git.addRemote({
+        fs,
+        dir: repo,
+        remote: 'origin',
+        url: 'https://github.com/Owner/Repo.git',
+      })
+      await git.addRemote({
+        fs,
+        dir: repo,
+        remote: 'backup',
+        url: 'git@github.com:Other/Project.git',
+      })
+      await git.addRemote({
+        fs,
+        dir: repo,
+        remote: 'ssh-port',
+        url: 'ssh://git@github.com:22/Third/Repository.git',
+      })
+      await git.addRemote({
+        fs,
+        dir: repo,
+        remote: 'private',
+        url: 'https://secret@github.com/private/repo.git',
+      })
+      await git.addRemote({
+        fs,
+        dir: repo,
+        remote: 'self-hosted',
+        url: 'https://git.example.com/owner/repo.git',
+      })
+
+      assert.deepStrictEqual(await readGitActivity(dir), [
+        {
+          title: 'project',
+          source: 'git',
+          activeAt: '2025-01-01T00:00:00.000Z',
+          repoUrl: 'Owner/Repo',
+        },
+      ])
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('verifies public GitHub repositories without credentials and fails closed', async () => {
+    const originalFetch = globalThis.fetch
+    const requested: string[] = []
+
+    try {
+      globalThis.fetch = async (input, init) => {
+        requested.push(String(input))
+        assert.strictEqual(
+          new Headers(init?.headers).has('Authorization'),
+          false,
+        )
+        return new Response(
+          JSON.stringify({ private: false, name: 'public' }),
+          {
+            status: 200,
+          },
+        )
+      }
+      const publicRepository =
+        await verifyPublicGitHubRepository('Owner/public')
+      assert.strictEqual(publicRepository, 'https://github.com/Owner/public')
+      assert.deepStrictEqual(requested, [
+        'https://api.github.com/repos/Owner/public',
+      ])
+
+      globalThis.fetch = async () => new Response('{}', { status: 404 })
+      assert.strictEqual(
+        await verifyPublicGitHubRepository('Owner/unknown'),
+        undefined,
+      )
+
+      globalThis.fetch = async () => {
+        throw new Error('network failure')
+      }
+      assert.strictEqual(
+        await verifyPublicGitHubRepository('Owner/unknown'),
+        undefined,
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   it('skips Git activity when the project directory is unset or empty', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'pi-activity-git-disabled-'))
     const originalCwd = process.cwd()
@@ -139,11 +227,7 @@ describe('Git activity', () => {
 
       // An explicit directory remains available for direct test injection.
       assert.deepStrictEqual(await readGitActivity(dir), [
-        {
-          title: 'project',
-          source: 'git',
-          activeAt: '2025-01-01T00:00:00.000Z',
-        },
+        gitActivity('project', '2025-01-01T00:00:00.000Z'),
       ])
     } finally {
       process.chdir(originalCwd)
@@ -174,16 +258,8 @@ describe('Git activity', () => {
       await createRepo(join(dir, 'first'), '2025-01-01T00:00:00Z')
       await createRepo(join(dir, 'second'), '2025-01-02T00:00:00Z')
       const expected = [
-        {
-          title: 'first',
-          source: 'git',
-          activeAt: '2025-01-01T00:00:00.000Z',
-        },
-        {
-          title: 'second',
-          source: 'git',
-          activeAt: '2025-01-02T00:00:00.000Z',
-        },
+        gitActivity('first', '2025-01-01T00:00:00.000Z'),
+        gitActivity('second', '2025-01-02T00:00:00.000Z'),
       ]
       assert.deepStrictEqual(
         (await readGitActivity(dir)).sort((a, b) =>
@@ -217,14 +293,18 @@ describe('Git activity', () => {
       assert.deepStrictEqual(
         (
           (await res.json()) as {
-            title: string
+            title?: string
             source: string
             activeAt: string
+            repoUrl?: string
           }[]
         )
           .filter(({ source }) => source === 'git')
-          .sort((a, b) => a.title.localeCompare(b.title)),
-        expected,
+          .sort((a, b) => a.activeAt.localeCompare(b.activeAt)),
+        [
+          { source: 'git', activeAt: '2025-01-01T00:00:00.000Z' },
+          { source: 'git', activeAt: '2025-01-02T00:00:00.000Z' },
+        ],
       )
     } finally {
       if (originalProjectDir === undefined)
@@ -272,21 +352,9 @@ describe('Git activity', () => {
           a.title.localeCompare(b.title),
         ),
         [
-          {
-            title: 'detached',
-            source: 'git',
-            activeAt: '2025-02-02T00:00:00.000Z',
-          },
-          {
-            title: 'packed',
-            source: 'git',
-            activeAt: '2025-02-01T00:00:00.000Z',
-          },
-          {
-            title: 'shallow',
-            source: 'git',
-            activeAt: '2025-02-03T00:00:00.000Z',
-          },
+          gitActivity('detached', '2025-02-02T00:00:00.000Z'),
+          gitActivity('packed', '2025-02-01T00:00:00.000Z'),
+          gitActivity('shallow', '2025-02-03T00:00:00.000Z'),
         ].sort((a, b) => a.title.localeCompare(b.title)),
       )
     } finally {
@@ -339,12 +407,110 @@ describe('Git activity', () => {
 
 // In-process tests using Hono's app.request()
 describe('Activity API (in-process)', () => {
+  it('merges verified repo details and checks only the ten newest projects', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-verified-github-'))
+    const projectsDir = join(dir, 'projects')
+    const sessionsDir = join(dir, 'sessions')
+    const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
+    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const originalFetch = globalThis.fetch
+    let fetchCount = 0
+
+    try {
+      await mkdir(projectsDir)
+      await mkdir(join(sessionsDir, 'pi-session'), { recursive: true })
+      await Promise.all(
+        Array.from({ length: 12 }, async (_, index) => {
+          const project = `project-${String(index).padStart(2, '0')}`
+          const day = String(20 - index).padStart(2, '0')
+          const repo = join(projectsDir, project)
+          await createRepo(repo, `2025-03-${day}T00:00:00.000Z`)
+          await git.addRemote({
+            fs,
+            dir: repo,
+            remote: 'origin',
+            url: `https://github.com/example/repository-${project}.git`,
+          })
+        }),
+      )
+      await writeFile(
+        join(sessionsDir, 'pi-session', 'session.jsonl'),
+        [
+          JSON.stringify({ type: 'session', cwd: '/workspace/project-00' }),
+          JSON.stringify({
+            type: 'message',
+            timestamp: '2025-03-20T12:00:00.000Z',
+          }),
+        ].join('\n'),
+      )
+      process.env.PI_CODING_AGENT_SESSION_DIR = sessionsDir
+      process.env.PI_ACTIVITY_PROJECT_DIR = projectsDir
+      globalThis.fetch = async (input, init) => {
+        fetchCount += 1
+        const url = String(input)
+        assert.match(url, /^https:\/\/api\.github\.com\/repos\//)
+        assert.strictEqual(
+          new Headers(init?.headers).has('Authorization'),
+          false,
+        )
+        if (url.endsWith('/repository-project-01'))
+          return new Response(
+            JSON.stringify({ private: true, name: 'private-repo' }),
+            { status: 200 },
+          )
+        if (url.endsWith('/repository-project-02'))
+          return new Response('{}', { status: 404 })
+        if (url.endsWith('/repository-project-03'))
+          throw new Error('GitHub network failure')
+        return new Response(
+          JSON.stringify({ private: false, name: 'public-repo' }),
+          { status: 200 },
+        )
+      }
+
+      const response = await app.request('http://localhost/activity?count=10')
+      const activities = (await response.json()) as {
+        title?: string
+        source: string
+        activeAt: string
+        repoUrl?: string
+      }[]
+      assert.strictEqual(activities.length, 10)
+      assert.strictEqual(fetchCount, 10)
+      assert.deepStrictEqual(activities[0], {
+        source: 'pi',
+        activeAt: '2025-03-20T12:00:00.000Z',
+        title: 'project-00',
+        repoUrl: 'https://github.com/example/repository-project-00',
+      })
+      assert.strictEqual(activities[1]?.title, undefined)
+      assert.strictEqual(activities[1]?.repoUrl, undefined)
+      assert.strictEqual(activities[2]?.title, undefined)
+      assert.strictEqual(activities[2]?.repoUrl, undefined)
+      assert.strictEqual(activities[3]?.title, undefined)
+      assert.strictEqual(activities[3]?.repoUrl, undefined)
+      assert.strictEqual(activities[9]?.title, 'project-09')
+      assert.strictEqual(activities[10]?.title, undefined)
+      assert.strictEqual(activities[10]?.repoUrl, undefined)
+    } finally {
+      globalThis.fetch = originalFetch
+      if (originalSessionDir === undefined)
+        delete process.env.PI_CODING_AGENT_SESSION_DIR
+      else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
+      if (originalProjectDir === undefined)
+        delete process.env.PI_ACTIVITY_PROJECT_DIR
+      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
   it('returns the newest activity per project in most-recent order', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'pi-activity-grouped-'))
     const sessionsDir = join(dir, 'sessions')
     const projectsDir = join(dir, 'projects')
     const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
     const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const originalFetch = globalThis.fetch
 
     try {
       const piProjects = [
@@ -370,37 +536,37 @@ describe('Activity API (in-process)', () => {
         createRepo(join(projectsDir, 'collision'), '2025-01-07T00:00:00.000Z'),
         createRepo(join(projectsDir, 'beta'), '2025-01-09T00:00:00.000Z'),
       ])
+      await git.addRemote({
+        fs,
+        dir: join(projectsDir, 'collision'),
+        remote: 'origin',
+        url: 'https://github.com/example/collision.git',
+      })
+      globalThis.fetch = async () =>
+        new Response(JSON.stringify({ private: false, name: 'collision' }), {
+          status: 200,
+        })
       process.env.PI_CODING_AGENT_SESSION_DIR = sessionsDir
       process.env.PI_ACTIVITY_PROJECT_DIR = projectsDir
 
       const res = await app.request('http://localhost/activity')
       const expected = [
+        { source: 'git', activeAt: '2025-01-09T00:00:00.000Z' },
         {
-          title: 'beta',
-          source: 'git',
-          activeAt: '2025-01-09T00:00:00.000Z',
-        },
-        {
-          title: 'collision',
           source: 'pi',
           activeAt: '2025-01-08T00:00:00.000Z',
+          title: 'collision',
+          repoUrl: 'https://github.com/example/collision',
         },
-        {
-          title: 'shared',
-          source: 'git',
-          activeAt: '2025-01-07T00:00:00.000Z',
-        },
-        {
-          title: 'alpha',
-          source: 'pi',
-          activeAt: '2025-01-06T00:00:00.000Z',
-        },
+        { source: 'git', activeAt: '2025-01-07T00:00:00.000Z' },
+        { source: 'pi', activeAt: '2025-01-06T00:00:00.000Z' },
       ]
       assert.deepStrictEqual(await res.json(), expected)
 
       const limited = await app.request('http://localhost/activity?count=4')
       assert.deepStrictEqual(await limited.json(), expected)
     } finally {
+      globalThis.fetch = originalFetch
       if (originalSessionDir === undefined)
         delete process.env.PI_CODING_AGENT_SESSION_DIR
       else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
@@ -436,15 +602,20 @@ describe('Activity API (in-process)', () => {
     assert.strictEqual(res.status, 200)
     assert.strictEqual(res.headers.get('content-type'), 'application/json')
     const body = (await res.json()) as {
-      title: string
+      title?: string
       source: string
       activeAt: string
+      repoUrl?: string
     }[]
     assert.ok(Array.isArray(body))
     assert.ok(
       body.every(
         (activity) =>
-          typeof activity.title === 'string' &&
+          (activity.title === undefined ||
+            typeof activity.title === 'string') &&
+          (activity.repoUrl === undefined ||
+            typeof activity.repoUrl === 'string') &&
+          (activity.title === undefined) === (activity.repoUrl === undefined) &&
           ['pi', 'git'].includes(activity.source) &&
           !Number.isNaN(Date.parse(activity.activeAt)),
       ),
@@ -521,15 +692,21 @@ describe('Activity API (HTTP server)', async () => {
       assert.strictEqual(res.status, 200)
       assert.strictEqual(res.headers.get('content-type'), 'application/json')
       const body = (await res.json()) as {
-        title: string
+        title?: string
         source: string
         activeAt: string
+        repoUrl?: string
       }[]
       assert.ok(Array.isArray(body))
       assert.ok(
         body.every(
           (activity) =>
-            typeof activity.title === 'string' &&
+            (activity.title === undefined ||
+              typeof activity.title === 'string') &&
+            (activity.repoUrl === undefined ||
+              typeof activity.repoUrl === 'string') &&
+            (activity.title === undefined) ===
+              (activity.repoUrl === undefined) &&
             ['pi', 'git'].includes(activity.source) &&
             !Number.isNaN(Date.parse(activity.activeAt)),
         ),

@@ -16,15 +16,51 @@ describe('Static assets (in-process)', () => {
     const spec = (await res.json()) as {
       paths: {
         '/activity': {
-          get: { parameters: { name: string; in: string }[] }
+          get: {
+            parameters: {
+              name: string
+              in: string
+              schema?: { maximum?: number }
+            }[]
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: {
+                      items: {
+                        properties: {
+                          title: { description?: string }
+                          repoUrl: { description?: string }
+                        }
+                        required: string[]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
-    assert.ok(
-      spec.paths['/activity'].get.parameters.some(
-        ({ name, in: location }) => name === 'count' && location === 'query',
-      ),
+    const operation = spec.paths['/activity'].get
+    const countParameter = operation.parameters.find(
+      ({ name, in: location }) => name === 'count' && location === 'query',
     )
+    assert.ok(countParameter)
+    assert.strictEqual(countParameter.schema?.maximum, 10)
+    const itemSchema =
+      operation.responses['200'].content['application/json'].schema.items
+    assert.strictEqual(
+      itemSchema.properties.title.description,
+      'Local project directory name, included only for a verified public GitHub repository.',
+    )
+    assert.ok(!itemSchema.required.includes('title'))
+    assert.strictEqual(
+      itemSchema.properties.repoUrl.description,
+      'Canonical URL of a verified public GitHub repository.',
+    )
+    assert.ok(!itemSchema.required.includes('repoUrl'))
   })
 
   it('should return 404 for a missing file under /dist', async () => {
