@@ -1,13 +1,9 @@
 import { createReadStream } from 'node:fs'
+import type { Activity } from './activity.ts'
 import { readdir } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, join } from 'node:path'
 import { createInterface } from 'node:readline'
-
-export type ProjectActivity = {
-  project: string
-  lastMessage: string
-}
 
 // PI_CODING_AGENT_SESSION_DIR wins; else <PI_CODING_AGENT_DIR>/sessions
 export const sessionsDir = (env = process.env): string =>
@@ -36,10 +32,10 @@ const readSession = async (file: string) => {
 const readDirOrEmpty = (dir: string) =>
   readdir(dir, { withFileTypes: true }).catch(() => [])
 
-// Maps each project to its most recent message timestamp (ISO 8601).
-export const readActivity = async (
+// Maps each project to its most recent Pi session message.
+export const readPiActivity = async (
   dir = sessionsDir(),
-): Promise<ProjectActivity[]> => {
+): Promise<Activity[]> => {
   const projectDirs = (await readDirOrEmpty(dir)).filter((d) => d.isDirectory())
   const projects = await Promise.all(
     projectDirs.map(async (pd) => {
@@ -53,12 +49,15 @@ export const readActivity = async (
       const lastMessage = sessions.map((s) => s.last).reduce(newest, undefined)
       const cwd = sessions.find((s) => s.cwd)?.cwd
       return lastMessage
-        ? { project: cwd ? basename(cwd) : pd.name, lastMessage }
+        ? {
+            title: cwd ? basename(cwd) : pd.name,
+            source: 'pi',
+            activeAt: lastMessage,
+          }
         : undefined
     }),
   )
-  return projects.filter((p): p is ProjectActivity => p !== undefined)
+  return projects.filter(
+    (activity): activity is Activity => activity !== undefined,
+  )
 }
-
-export const mostRecent = (activity: ProjectActivity[]): string | undefined =>
-  activity.map((a) => a.lastMessage).reduce(newest, undefined)

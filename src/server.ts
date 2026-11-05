@@ -3,28 +3,33 @@
 import { serve } from '@hono/node-server'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import pkg from '../package.json' with { type: 'json' }
-import { mostRecent, readActivity } from './sessions.ts'
+import { readPiActivity } from './pi.ts'
+import { readGitActivity } from './git.ts'
 import { swaggerUI } from '@hono/swagger-ui'
 import { serveStatic } from '@hono/node-server/serve-static'
 
-// Activity response: empty when there is no activity
+// Activity response, ordered from most recent to oldest.
 export const Activity = z
-  .strictObject({
-    lastActivity: z.iso.datetime().optional().openapi({
-      description: 'ISO 8601 timestamp of the most recent message.',
+  .array(
+    z.strictObject({
+      title: z.string(),
+      source: z.enum(['pi', 'git']),
+      activeAt: z.iso.datetime().openapi({
+        description: 'ISO 8601 timestamp of the activity.',
+      }),
     }),
-  })
-  .openapi({ description: 'Empty when there is no activity.' })
+  )
+  .openapi({ description: 'Empty when no project activity is found.' })
 
 const getActivity = createRoute({
   method: 'get',
   path: '/activity',
   operationId: 'getActivity',
-  summary: 'Get the most recent activity timestamp',
+  summary: 'Get project activity sorted by most recent',
   responses: {
     200: {
       description:
-        'The most recent activity. An empty object when no activity is found.',
+        'Project activity, sorted from most recent to oldest. An empty array when no activity is found.',
       content: {
         'application/json': { schema: Activity },
       },
@@ -37,8 +42,12 @@ export const app = new OpenAPIHono()
 
 // GET /activity endpoint
 app.openapi(getActivity, async (c) => {
-  const lastActivity = mostRecent(await readActivity())
-  return c.json(lastActivity ? { lastActivity } : {}, 200)
+  const sources = await Promise.all([readPiActivity(), readGitActivity()])
+  const activity = sources.flat()
+  const response = activity.sort((a, b) =>
+    b.activeAt.localeCompare(a.activeAt),
+  )
+  return c.json(response, 200)
 })
 
 // GET /openapi.json endpoint, spec generated from the routes above

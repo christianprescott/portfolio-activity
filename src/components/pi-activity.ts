@@ -5,8 +5,11 @@ import './activity-card.ts'
 import './loading-card.ts'
 
 type Activity = {
+  title: string
+  source: 'pi' | 'git'
   activeAt: string
 }
+
 type ActivityState = {
   loading: Boolean
   errorText: string | undefined
@@ -15,15 +18,13 @@ type ActivityState = {
 
 const scriptOrigin = new URL(import.meta.url).origin
 
-const fetchActivity = async (base: string): Promise<string> => {
+const fetchActivities = async (base: string): Promise<Activity[]> => {
   const res = await fetch(`${base}/activity`)
+  // TODO: throw error class
   if (!res.ok) throw `${res.status} ${res.statusText}`
+  // TODO: use openapi client
   const body = await res.json()
-  const last = (body as { lastActivity?: unknown } | null)?.lastActivity
-  if (typeof last === 'string' && !Number.isNaN(Date.parse(last))) {
-    return last
-  }
-  throw 'No activity'
+  return body
 }
 
 export class PiActivity extends LitElement {
@@ -65,12 +66,12 @@ export class PiActivity extends LitElement {
   connectedCallback() {
     super.connectedCallback()
     const base = (this.getAttribute('src') || scriptOrigin).replace(/\/$/, '')
-    fetchActivity(base)
-      .then((last) => {
+    fetchActivities(base)
+      .then((activities) => {
         this.state = {
           loading: false,
           errorText: undefined,
-          activities: [{ activeAt: last }],
+          activities,
         }
       })
       .catch((e) => {
@@ -87,13 +88,14 @@ export class PiActivity extends LitElement {
     if (this.state.loading) {
       return html`<loading-card></loading-card>`
     } else if (this.state.errorText) {
-      return html`<activity-card> ${this.state.errorText} </activity-card>`
+      return html`<activity-card title="afk"> ${this.state.errorText} </activity-card>`
     } else {
       return this.state.activities.map((a) => {
         const local = new Date(a.activeAt)
-        return html`<activity-card .activeAt=${local}>
+        return html`<activity-card title=${a.title} source=${a.source} .activeAt=${local}>
           <time datetime=${a.activeAt}>
-            ${this.displayName} was writing code at: ${local.toLocaleString()}
+            ${this.displayName} ${a.source === 'git' ? 'made a git commit' : 'was writing code'} at:
+            ${local.toLocaleString()}
           </time>
         </activity-card>`
       })

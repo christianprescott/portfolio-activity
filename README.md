@@ -21,6 +21,7 @@ Configure pi-activity's environment and behavior.
 - `HOST` - host to bind (default `0.0.0.0`)
 - `PI_CODING_AGENT_DIR` - Pi config directory, where sessions/ are found. (default `~/.pi/agent`)
 - `PI_CODING_AGENT_SESSION_DIR` - Pi session storage directory. Overrides `PI_CODING_AGENT_DIR`
+- `PI_ACTIVITY_PROJECT_DIR` - directory containing project directories for Git and filesystem activity. These sources are skipped when this is unset.
 
 ## Development
 
