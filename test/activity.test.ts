@@ -319,6 +319,95 @@ describe('Git activity', () => {
 
 // In-process tests using Hono's app.request()
 describe('Activity API (in-process)', () => {
+  it('returns the newest activity per project in most-recent order', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-grouped-'))
+    const sessionsDir = join(dir, 'sessions')
+    const projectsDir = join(dir, 'projects')
+    const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
+    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+
+    try {
+      const piProjects = [
+        ['shared', '2025-01-05T00:00:00.000Z'],
+        ['collision', '2025-01-08T00:00:00.000Z'],
+        ['alpha', '2025-01-06T00:00:00.000Z'],
+      ] as const
+      await Promise.all(
+        piProjects.map(async ([project, timestamp]) => {
+          const projectDir = join(sessionsDir, project)
+          await mkdir(projectDir, { recursive: true })
+          await writeFile(
+            join(projectDir, 'session.jsonl'),
+            [
+              JSON.stringify({ type: 'session', cwd: `/workspace/${project}` }),
+              JSON.stringify({ type: 'message', timestamp }),
+            ].join('\n'),
+          )
+        }),
+      )
+      await Promise.all([
+        createRepo(join(projectsDir, 'shared'), '2025-01-07T00:00:00.000Z'),
+        createRepo(
+          join(projectsDir, 'collision'),
+          '2025-01-07T00:00:00.000Z',
+        ),
+        createRepo(join(projectsDir, 'beta'), '2025-01-09T00:00:00.000Z'),
+      ])
+      process.env.PI_CODING_AGENT_SESSION_DIR = sessionsDir
+      process.env.PI_ACTIVITY_PROJECT_DIR = projectsDir
+
+      const res = await app.request('http://localhost/activity')
+      assert.deepStrictEqual(await res.json(), [
+        {
+          title: 'beta',
+          source: 'git',
+          activeAt: '2025-01-09T00:00:00.000Z',
+        },
+        {
+          title: 'collision',
+          source: 'pi',
+          activeAt: '2025-01-08T00:00:00.000Z',
+        },
+        {
+          title: 'shared',
+          source: 'git',
+          activeAt: '2025-01-07T00:00:00.000Z',
+        },
+        {
+          title: 'alpha',
+          source: 'pi',
+          activeAt: '2025-01-06T00:00:00.000Z',
+        },
+      ])
+    } finally {
+      if (originalSessionDir === undefined)
+        delete process.env.PI_CODING_AGENT_SESSION_DIR
+      else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
+      if (originalProjectDir === undefined)
+        delete process.env.PI_ACTIVITY_PROJECT_DIR
+      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('returns an empty array when no activity is available', async () => {
+    const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
+    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    try {
+      process.env.PI_CODING_AGENT_SESSION_DIR = '/nonexistent'
+      delete process.env.PI_ACTIVITY_PROJECT_DIR
+      const res = await app.request('http://localhost/activity')
+      assert.deepStrictEqual(await res.json(), [])
+    } finally {
+      if (originalSessionDir === undefined)
+        delete process.env.PI_CODING_AGENT_SESSION_DIR
+      else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
+      if (originalProjectDir === undefined)
+        delete process.env.PI_ACTIVITY_PROJECT_DIR
+      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+    }
+  })
+
   it('should return 200 for GET /activity', async () => {
     const res = await app.request('http://localhost/activity', {
       method: 'GET',

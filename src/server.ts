@@ -8,7 +8,7 @@ import { readGitActivity } from './sources/git.ts'
 import { swaggerUI } from '@hono/swagger-ui'
 import { serveStatic } from '@hono/node-server/serve-static'
 
-// Activity response, ordered from most recent to oldest.
+// Activity response, with one most-recent entry per project.
 export const Activity = z
   .array(
     z.strictObject({
@@ -25,11 +25,11 @@ const getActivity = createRoute({
   method: 'get',
   path: '/activity',
   operationId: 'getActivity',
-  summary: 'Get project activity sorted by most recent',
+  summary: 'Get the most recent activity for each project',
   responses: {
     200: {
       description:
-        'Project activity, sorted from most recent to oldest. An empty array when no activity is found.',
+        'The most recent activity for each project, ordered from most recent to oldest. An empty array when no activity is found.',
       content: {
         'application/json': { schema: Activity },
       },
@@ -43,10 +43,16 @@ export const app = new OpenAPIHono()
 // GET /activity endpoint
 app.openapi(getActivity, async (c) => {
   const sources = await Promise.all([readPiActivity(), readGitActivity()])
-  const activity = sources.flat()
-  const response = activity.sort((a, b) =>
+  const activity = sources.flat().sort((a, b) =>
     b.activeAt.localeCompare(a.activeAt),
   )
+  const projects = new Map<string, (typeof activity)[number][]>()
+  activity.forEach((entry) => {
+    const group = projects.get(entry.title)
+    if (group) group.push(entry)
+    else projects.set(entry.title, [entry])
+  })
+  const response = [...projects.values()].map(([latest]) => latest)
   return c.json(response, 200)
 })
 
