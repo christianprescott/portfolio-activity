@@ -21,6 +21,7 @@ type ActivityState = {
 }
 
 const scriptOrigin = new URL(import.meta.url).origin
+const defaultActivityCount = 10
 
 const fetchActivities = async (
   base: string,
@@ -66,7 +67,7 @@ export class PiActivity extends LitElement {
   declare state: ActivityState
   constructor() {
     super()
-    this.count = 10
+    this.count = defaultActivityCount
     this.state = {
       loading: true,
       errorText: undefined,
@@ -101,7 +102,10 @@ export class PiActivity extends LitElement {
 
   render() {
     if (this.state.loading) {
-      return html`<loading-card></loading-card>`
+      return Array.from(
+        { length: this.count },
+        () => html`<loading-card></loading-card>`,
+      )
     } else if (this.state.errorText) {
       return html`<activity-card title="afk">
         ${this.state.errorText}
