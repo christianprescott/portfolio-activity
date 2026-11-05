@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit'
 import { cardStyles } from './card-styles.ts'
+import './redacted.ts'
 
 // GitHub mark, from the MIT-licensed Octicons set:
 // https://github.com/primer/octicons/blob/main/icons/mark-github-16.svg
@@ -35,7 +36,8 @@ export class ActivityCard extends LitElement {
       a:visited {
         color: var(--pi-activity-color);
       }
-      a:hover {
+      a[href]:hover,
+      a[href]:focus-visible {
         color: var(--pi-activity-color-active);
       }
       a svg {
@@ -74,21 +76,24 @@ export class ActivityCard extends LitElement {
         ${this.activeAt?.getTime() > ninetyMinutesAgo ? html`<div class="indicator active"></div>` : nothing}
         ${!this.activeAt || this.activeAt?.getTime() < ninetyMinutesAgo ? html`<div class="indicator"></div>` : nothing}
       </div>
-      ${this.title ? html`<div class="mono bold">${this.title}</div>` : nothing}
+      <div class="mono bold">
+        ${
+          this.title
+            ? this.title
+            : html`<redacted-text label="REDACTED">project</redacted-text>`
+        }
+      </div>
       <div>
         <slot></slot>
       </div>
-      ${
-        this.repoUrl
-          ? html`<a
-              class="mono"
-              href=${this.repoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              >${githubIcon}repo</a
-            >`
-          : nothing
-      }
+      <a
+        class="mono"
+        role="link"
+        href=${this.repoUrl || nothing}
+        target="_blank"
+        rel="noopener noreferrer"
+        >${githubIcon}${this.repoUrl ? 'repo' : 'private'}</a
+      >
     </div>`
   }
 }
