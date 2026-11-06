@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: development
     cap_drop:
       - ALL
     ports:
@@ -10,12 +12,13 @@ services:
       - HOST=0.0.0.0
       - PORTFOLIO_ACTIVITY_CACHE_SECONDS=0
     volumes:
-      - ./public:/app/public
       - public-dist:/app/public/dist
     restart: unless-stopped
 
   dev:
-    build: .
+    build:
+      context: .
+      target: development
     command: npm run dev
     volumes:
       - .:/app
