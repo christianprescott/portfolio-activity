@@ -9,8 +9,7 @@ Share your coding habits with the public. Great for bragging on your portfolio s
 Deploy portfolio-activity alongside your Pi agent, git repo, or project directory.
 
 ```sh
-# TODO: how to start an instance
-docker run --rm -p 3000:3000 portfolio-activity
+docker run --rm -p 3000:3000 ghcr.io/christianprescott/portfolio-activity:latest
 ```
 
 ### Environment Variables
