@@ -75,3 +75,15 @@ Tests are currently entirely AI generated and I make no claims to their effectiv
 ```sh
 docker compose run --rm app npm test
 ```
+
+## TODO
+
+- [ ] Cache github repo requests. Only 60/hr are allowed unauthenticated.
+- [ ] Move api routes to /api/
+- [ ] Add file modified source
+- [ ] Refine activity age indicator and messages
+- [ ] Refine error state
+- [ ] Add env vars for project detail/whitelist/blacklist
+- [ ] Add env vars for "activity after" filter
+- [ ] Document CSS vars
+- [ ] Add polling to client
