@@ -10,6 +10,7 @@ services:
       - HOST=0.0.0.0
     volumes:
       - ./public:/app/public
+      - public-dist:/app/public/dist
     restart: unless-stopped
 
   dev:
@@ -18,5 +19,9 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - public-dist:/app/public/dist
     ports:
       - '8000:8000'
+
+volumes:
+  public-dist:

@@ -9,6 +9,7 @@ COPY tsconfig.json index.ts ./
 COPY src ./src
 COPY public ./public
 RUN npm run build
+RUN chown -R node:node /app/public/dist
 COPY test ./test
 
 USER node
