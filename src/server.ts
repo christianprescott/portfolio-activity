@@ -8,6 +8,7 @@ import { readGitActivity } from './sources/git.ts'
 import { verifyPublicGitHubRepository } from './sources/github.ts'
 import { swaggerUI } from '@hono/swagger-ui'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { cors } from 'hono/cors'
 
 // Activity response, with one most-recent entry per project.
 export const Activity = z
@@ -54,6 +55,17 @@ const getActivity = createRoute({
 
 // Create Hono app
 export const app = new OpenAPIHono()
+
+const allowedOrigin = process.env.PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS
+
+// Allow the configured portfolio origin to load the module and access every route.
+app.use(
+  '*',
+  cors({
+    origin: (origin) => (origin === allowedOrigin ? origin : null),
+    allowMethods: ['GET', 'HEAD', 'OPTIONS'],
+  }),
+)
 
 // GET /activity endpoint
 app.openapi(getActivity, async (c) => {
