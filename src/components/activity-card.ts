@@ -57,13 +57,12 @@ export class ActivityCard extends LitElement {
   ]
 
   render() {
-    const twentyMinutesAgo = Date.now() - 20 * 60 * 1000
-    const ninetyMinutesAgo = Date.now() - 90 * 60 * 1000
+    const oneHourAgo = Date.now() - 60 * 60 * 1000
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000
     return html`<div class="grid card gap">
       <div class="flex">
-        ${this.activeAt?.getTime() > twentyMinutesAgo ? html`<div class="indicator active absolute ping"></div>` : nothing}
-        ${this.activeAt?.getTime() > ninetyMinutesAgo ? html`<div class="indicator active"></div>` : nothing}
-        ${!this.activeAt || this.activeAt?.getTime() < ninetyMinutesAgo ? html`<div class="indicator"></div>` : nothing}
+        ${this.activeAt?.getTime() > oneHourAgo ? html`<div class="indicator active absolute ping"></div>` : nothing}
+        ${this.activeAt?.getTime() > twentyFourHoursAgo ? html`<div class="indicator active"></div>` : html`<div class="indicator"></div>`}
       </div>
       <div class="mono bold">
         ${

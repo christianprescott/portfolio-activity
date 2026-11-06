@@ -19,21 +19,21 @@
     <!--
     Render sample code in a textarea, then render the result of that code below. A simple interactive editor and documentation of CSS vars.
     -->
-    <textarea id="code" rows="12" cols="60" autocomplete="off">
-      <style>
-        portfolio-activity {
-          /*--portfolio-activity-font-serif: serif;*/
-          /*--portfolio-activity-font-mono: monospace;*/
-          /*--portfolio-activity-color: currentColor;*/
-          /*--portfolio-activity-color-success: #00ff93;*/
-          /*--portfolio-activity-color-active: #009fff;*/
-          /*--portfolio-activity-border-color: currentColor;*/
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 0.5rem;
-        }
-      </style>
-      <portfolio-activity count="6" displayName="Christian" src="./example.json"></portfolio-activity>
+    <textarea id="code" rows="16" cols="60" autocomplete="off">
+<style>
+  portfolio-activity {
+    /*--portfolio-activity-font-serif: serif;*/
+    /*--portfolio-activity-font-mono: monospace;*/
+    /*--portfolio-activity-color: currentColor;*/
+    /*--portfolio-activity-color-success: #00ff93;*/
+    /*--portfolio-activity-color-active: #009fff;*/
+    /*--portfolio-activity-border-color: currentColor;*/
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+</style>
+<portfolio-activity count="6" displayName="Christian" src="./example.json"></portfolio-activity>
     </textarea>
     <button id="reset" type="button">Reset</button>
     <div id="preview"></div>
