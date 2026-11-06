@@ -1,4 +1,4 @@
-// Shows the most recent activity timestamp from the /activity API.
+// Renders activity loaded from an API or static JSON document.
 
 import { LitElement, css, html } from 'lit'
 import type { ActivitySource } from './activity-source.ts'
@@ -25,15 +25,23 @@ const scriptOrigin = new URL(import.meta.url).origin
 const defaultActivityCount = 10
 
 const fetchActivities = async (
-  base: string,
+  src: string,
   count: number,
 ): Promise<Activity[]> => {
-  const query = new URLSearchParams({ count: String(count) })
-  const res = await fetch(`${base}/activity?${query}`)
-  // TODO: throw error class
-  if (!res.ok) throw `${res.status} ${res.statusText}`
-  // TODO: use openapi client
-  return (await res.json()) as Activity[]
+  // The ability to pass a pathname like `/example.json` into the `src` attr is an intentionally undocumented feature for demo use only.
+  const sourceUrl = new URL(src, document.baseURI)
+  const usesApi = sourceUrl.pathname === '' || sourceUrl.pathname === '/'
+
+  const requestUrl = usesApi ? new URL('/activity', sourceUrl) : sourceUrl
+  if (usesApi) {
+    requestUrl.search = sourceUrl.search
+    requestUrl.searchParams.set('count', String(count))
+  }
+
+  const response = await fetch(requestUrl)
+  if (!response.ok) throw `${response.status} ${response.statusText}`
+  const activities = (await response.json()) as Activity[]
+  return activities
 }
 
 export class PortfolioActivity extends LitElement {
@@ -82,8 +90,7 @@ export class PortfolioActivity extends LitElement {
   }
 
   private loadActivities() {
-    const base = (this.src || scriptOrigin).replace(/\/$/, '')
-    fetchActivities(base, this.count)
+    fetchActivities(this.src ?? scriptOrigin, this.count)
       .then((activities) => {
         this.state = {
           loading: false,

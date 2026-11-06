@@ -63,6 +63,19 @@ describe('Static assets (in-process)', () => {
     assert.ok(!itemSchema.required.includes('repoUrl'))
   })
 
+  it('should serve the example activity JSON', async () => {
+    const res = await app.request('http://localhost/example.json', {
+      method: 'GET',
+    })
+    assert.strictEqual(res.status, 200)
+    assert.match(res.headers.get('content-type') ?? '', /^application\/json/)
+    const activities = (await res.json()) as { source: string }[]
+    assert.ok(activities.length > 0)
+    assert.ok(
+      activities.every(({ source }) => source === 'pi' || source === 'git'),
+    )
+  })
+
   it('should return 404 for a missing file under /dist', async () => {
     const res = await app.request('http://localhost/dist/missing.js', {
       method: 'GET',
