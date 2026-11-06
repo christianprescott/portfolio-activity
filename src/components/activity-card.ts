@@ -29,6 +29,9 @@ export class ActivityCard extends LitElement {
       a github-icon {
         margin-inline-end: 0.25rem;
       }
+      a.repo-link {
+        justify-self: start;
+      }
 
       .mono {
         font-family: var(--portfolio-activity-font-mono);
@@ -73,7 +76,7 @@ export class ActivityCard extends LitElement {
         <slot></slot>
       </div>
       <a
-        class="mono"
+        class="mono repo-link"
         role="link"
         href=${this.repoUrl || nothing}
         target="_blank"

@@ -88,6 +88,15 @@ test('applies the active link color to enabled links while preserving the disabl
   assert.doesNotMatch(styles.cssText, /outline\s*:/)
 })
 
+test('keeps the repository link sized to its contents', () => {
+  const card = new ActivityCard()
+  const template = renderedTemplate(card).strings.join('')
+  const styles = ActivityCard.styles[1] as { cssText: string }
+
+  assert.match(template, /class="mono repo-link"/)
+  assert.match(styles.cssText, /a\.repo-link\s*\{\s*justify-self:\s*start;\s*\}/)
+})
+
 test('renders the repo URL as an interactive link without the private label', () => {
   const card = new ActivityCard()
   card.repoUrl = 'https://github.com/example/repo'

@@ -66,7 +66,7 @@ services:
 
 ### Tests
 
-Tests are currently entirely AI generated and I make no claimes to their effectiveness.
+Tests are currently entirely AI generated and I make no claims to their effectiveness.
 
 ```sh
 docker compose run --rm app npm test
