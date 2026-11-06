@@ -39,10 +39,10 @@ test('uses the redacted-text component for an unset title with project slot cont
 
 test('shows the given title without a redacted overlay', () => {
   const card = new ActivityCard()
-  card.title = 'pi-activity'
+  card.title = 'portfolio-activity'
   const rendered = card.render()
 
-  assert.equal(rendered.values[3], 'pi-activity')
+  assert.equal(rendered.values[3], 'portfolio-activity')
   assert.equal(typeof rendered.values[4], 'symbol')
 })
 
@@ -75,7 +75,7 @@ test('applies the active link color only to navigable hover and focus-visible li
 
   assert.match(
     styles.cssText,
-    /a\[href\]:hover,\s*a\[href\]:focus-visible\s*\{\s*color:\s*var\(--pi-activity-color-active\);\s*\}/,
+    /a\[href\]:hover,\s*a\[href\]:focus-visible\s*\{\s*color:\s*var\(--portfolio-activity-color-active\);\s*\}/,
   )
   assert.doesNotMatch(styles.cssText, /a:hover\s*\{/)
   assert.doesNotMatch(styles.cssText, /outline\s*:/)

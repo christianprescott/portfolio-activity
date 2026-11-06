@@ -21,18 +21,18 @@ export class ActivityCard extends LitElement {
     css`
       a:link,
       a:visited {
-        color: var(--pi-activity-color);
+        color: var(--portfolio-activity-color);
       }
       a[href]:hover,
       a[href]:focus-visible {
-        color: var(--pi-activity-color-active);
+        color: var(--portfolio-activity-color-active);
       }
       a github-icon {
         margin-inline-end: 0.25rem;
       }
 
       .mono {
-        font-family: var(--pi-activity-font-mono);
+        font-family: var(--portfolio-activity-font-mono);
       }
       .bold {
         font-weight: bold;
@@ -49,7 +49,7 @@ export class ActivityCard extends LitElement {
       }
 
       .indicator.active {
-        background-color: var(--pi-activity-color-success);
+        background-color: var(--portfolio-activity-color-success);
       }
     `,
   ]

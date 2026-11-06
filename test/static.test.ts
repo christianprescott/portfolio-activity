@@ -7,7 +7,7 @@ describe('Static assets (in-process)', () => {
     const res = await app.request('http://localhost/', { method: 'GET' })
     assert.strictEqual(res.status, 200)
     assert.match(res.headers.get('content-type') ?? '', /^text\/html/)
-    assert.match(await res.text(), /<pi-activity[\s>]/)
+    assert.match(await res.text(), /<portfolio-activity[\s>]/)
   })
 
   it('documents the activity count query parameter in OpenAPI', async () => {

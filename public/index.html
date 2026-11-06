@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pi Activity</title>
-    <script type="module" src="/dist/pi-activity.js"></script>
+    <title>Portfolio Activity</title>
+    <script type="module" src="/dist/portfolio-activity.js"></script>
     <!-- TODO: include fonts in build then remove from here -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,26 +14,26 @@
     />
   </head>
   <body>
-    <h1>pi-activity</h1>
+    <h1>portfolio-activity</h1>
 
     <!--
     Render sample code in a textarea, then render the result of that code below. A simple interactive editor and documentation of CSS vars.
     -->
     <textarea id="code" rows="12" cols="60" autocomplete="off">
       <style>
-        pi-activity {
-          /*--pi-activity-font-serif: serif;*/
-          /*--pi-activity-font-mono: monospace;*/
-          /*--pi-activity-color: currentColor;*/
-          /*--pi-activity-color-success: #00ff93;*/
-          /*--pi-activity-color-active: #009fff;*/
-          /*--pi-activity-border-color: currentColor;*/
+        portfolio-activity {
+          /*--portfolio-activity-font-serif: serif;*/
+          /*--portfolio-activity-font-mono: monospace;*/
+          /*--portfolio-activity-color: currentColor;*/
+          /*--portfolio-activity-color-success: #00ff93;*/
+          /*--portfolio-activity-color-active: #009fff;*/
+          /*--portfolio-activity-border-color: currentColor;*/
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 0.5rem;
         }
       </style>
-      <pi-activity count="6" display-name="Christian"></pi-activity>
+      <portfolio-activity count="6" display-name="Christian"></portfolio-activity>
     </textarea>
     <button id="reset" type="button">Reset</button>
     <div id="preview"></div>

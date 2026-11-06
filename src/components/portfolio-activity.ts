@@ -36,7 +36,7 @@ const fetchActivities = async (
   return (await res.json()) as Activity[]
 }
 
-export class PiActivity extends LitElement {
+export class PortfolioActivity extends LitElement {
   static properties = {
     displayName: { type: String, attribute: 'display-name' },
     count: { type: Number },
@@ -46,19 +46,19 @@ export class PiActivity extends LitElement {
 
   static styles = css`
     :host {
-      --pi-activity-font-serif: 'EB Garamond', Georgia, serif;
-      --pi-activity-font-mono: 'Fragment Mono', ui-monospace, monospace;
-      --pi-activity-color: color-mix(in srgb, currentColor 70%, transparent);
-      --pi-activity-color-success: #00ff93;
-      --pi-activity-color-active: #009fff;
-      --pi-activity-border-color: color-mix(
+      --portfolio-activity-font-serif: 'EB Garamond', Georgia, serif;
+      --portfolio-activity-font-mono: 'Fragment Mono', ui-monospace, monospace;
+      --portfolio-activity-color: color-mix(in srgb, currentColor 70%, transparent);
+      --portfolio-activity-color-success: #00ff93;
+      --portfolio-activity-color-active: #009fff;
+      --portfolio-activity-border-color: color-mix(
         in srgb,
-        var(--pi-activity-color) 30%,
+        var(--portfolio-activity-color) 30%,
         transparent
       );
       display: block;
-      font-family: var(--pi-activity-font-serif);
-      color: var(--pi-activity-color);
+      font-family: var(--portfolio-activity-font-serif);
+      color: var(--portfolio-activity-color);
     }
   `
 
@@ -130,6 +130,6 @@ export class PiActivity extends LitElement {
   }
 }
 
-if (!customElements.get('pi-activity')) {
-  customElements.define('pi-activity', PiActivity)
+if (!customElements.get('portfolio-activity')) {
+  customElements.define('portfolio-activity', PortfolioActivity)
 }

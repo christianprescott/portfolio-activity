@@ -7,7 +7,7 @@ export class LoadingCard extends LitElement {
     cardStyles,
     css`
       .loading {
-        background-color: var(--pi-activity-color, currentColor);
+        background-color: var(--portfolio-activity-color, currentColor);
         border-radius: 1lh;
         span {
           visibility: hidden;
@@ -18,7 +18,7 @@ export class LoadingCard extends LitElement {
         background-image: linear-gradient(
           100deg,
           transparent 20%,
-          color-mix(in srgb, var(--pi-activity-color, currentColor) 20%, Canvas)
+          color-mix(in srgb, var(--portfolio-activity-color, currentColor) 20%, Canvas)
             50%,
           transparent 80%
         );
@@ -39,7 +39,7 @@ export class LoadingCard extends LitElement {
       }
       .w-6,
       .w-12 {
-        font-family: var(--pi-activity-font-mono);
+        font-family: var(--portfolio-activity-font-mono);
       }
       .w-6 {
         width: 100%;

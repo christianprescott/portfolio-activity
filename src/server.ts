@@ -87,7 +87,7 @@ app.openapi(getActivity, async (c) => {
 // GET /openapi.json endpoint, spec generated from the routes above
 app.doc31('/openapi.json', {
   openapi: '3.1.0',
-  info: { title: 'Pi Activity', version: pkg.version },
+  info: { title: 'Portfolio Activity', version: pkg.version },
 })
 
 // Serve Swagger UI docs at /docs

@@ -58,7 +58,7 @@ describe('Session reading', () => {
   })
 
   it('serves project activity sorted by latest message first', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-'))
     const originalDir = process.env.PI_CODING_AGENT_SESSION_DIR
     const sessions = [
       ['older', '2026-11-03T22:32:55.483Z'],
@@ -119,7 +119,7 @@ describe('Activity count query', () => {
 
 describe('Git activity', () => {
   it('stores the first normalized GitHub remote as an unverified repoUrl', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-git-remotes-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-git-remotes-'))
     const repo = join(dir, 'project')
     try {
       await createRepo(repo, '2025-01-01T00:00:00Z')
@@ -211,18 +211,18 @@ describe('Git activity', () => {
   })
 
   it('skips Git activity when the project directory is unset or empty', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-git-disabled-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-git-disabled-'))
     const originalCwd = process.cwd()
-    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const originalProjectDir = process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
 
     try {
       await createRepo(join(dir, 'project'), '2025-01-01T00:00:00Z')
       process.chdir(dir)
 
-      delete process.env.PI_ACTIVITY_PROJECT_DIR
+      delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
       assert.deepStrictEqual(await readGitActivity(), [])
 
-      process.env.PI_ACTIVITY_PROJECT_DIR = ''
+      process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = ''
       assert.deepStrictEqual(await readGitActivity(), [])
 
       // An explicit directory remains available for direct test injection.
@@ -232,15 +232,15 @@ describe('Git activity', () => {
     } finally {
       process.chdir(originalCwd)
       if (originalProjectDir === undefined)
-        delete process.env.PI_ACTIVITY_PROJECT_DIR
-      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+        delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
+      else process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = originalProjectDir
       await rm(dir, { recursive: true, force: true })
     }
   })
 
   it('reads only immediate child repositories and latest commit timestamps', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-git-'))
-    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-git-'))
+    const originalProjectDir = process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
 
     try {
       assert.deepStrictEqual(await readGitActivity(dir), [])
@@ -268,7 +268,7 @@ describe('Git activity', () => {
         expected,
       )
 
-      process.env.PI_ACTIVITY_PROJECT_DIR = dir
+      process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = dir
       assert.deepStrictEqual(
         (await readGitActivity()).sort((a, b) =>
           a.title.localeCompare(b.title),
@@ -278,7 +278,7 @@ describe('Git activity', () => {
 
       // A repository at the project directory itself must not be reported as a child.
       const parentRepo = await mkdtemp(
-        join(tmpdir(), 'pi-activity-parent-git-'),
+        join(tmpdir(), 'portfolio-activity-parent-git-'),
       )
       try {
         await createRepo(parentRepo, '2025-01-04T00:00:00Z')
@@ -288,7 +288,7 @@ describe('Git activity', () => {
         await rm(parentRepo, { recursive: true, force: true })
       }
 
-      process.env.PI_ACTIVITY_PROJECT_DIR = dir
+      process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = dir
       const res = await app.request('http://localhost/activity')
       assert.deepStrictEqual(
         (
@@ -308,14 +308,14 @@ describe('Git activity', () => {
       )
     } finally {
       if (originalProjectDir === undefined)
-        delete process.env.PI_ACTIVITY_PROJECT_DIR
-      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+        delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
+      else process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = originalProjectDir
       await rm(dir, { recursive: true, force: true })
     }
   })
 
   it('reads packed refs, detached HEADs and shallow repositories', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-git-formats-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-git-formats-'))
     try {
       const packed = join(dir, 'packed')
       const packedOid = await createRepo(packed, '2025-02-01T00:00:00Z')
@@ -363,7 +363,7 @@ describe('Git activity', () => {
   })
 
   it('surfaces unexpected repository errors', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-invalid-git-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-invalid-git-'))
     try {
       await mkdir(join(dir, 'broken', '.git'), { recursive: true })
       await writeFile(join(dir, 'broken', '.git', 'HEAD'), 'invalid HEAD\n')
@@ -374,7 +374,7 @@ describe('Git activity', () => {
   })
 
   it('surfaces missing commit objects instead of treating them as empty repos', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-missing-commit-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-missing-commit-'))
     const repo = join(dir, 'broken')
     const missingOid = 'a'.repeat(40)
     try {
@@ -391,7 +391,7 @@ describe('Git activity', () => {
   })
 
   it('skips linked worktrees with a gitdir-file .git entry', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-worktree-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-worktree-'))
     try {
       await mkdir(join(dir, 'linked'))
       await writeFile(
@@ -408,11 +408,11 @@ describe('Git activity', () => {
 // In-process tests using Hono's app.request()
 describe('Activity API (in-process)', () => {
   it('merges verified repo details and checks only the ten newest projects', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-verified-github-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-verified-github-'))
     const projectsDir = join(dir, 'projects')
     const sessionsDir = join(dir, 'sessions')
     const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
-    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const originalProjectDir = process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
     const originalFetch = globalThis.fetch
     let fetchCount = 0
 
@@ -444,7 +444,7 @@ describe('Activity API (in-process)', () => {
         ].join('\n'),
       )
       process.env.PI_CODING_AGENT_SESSION_DIR = sessionsDir
-      process.env.PI_ACTIVITY_PROJECT_DIR = projectsDir
+      process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = projectsDir
       globalThis.fetch = async (input, init) => {
         fetchCount += 1
         const url = String(input)
@@ -498,18 +498,18 @@ describe('Activity API (in-process)', () => {
         delete process.env.PI_CODING_AGENT_SESSION_DIR
       else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
       if (originalProjectDir === undefined)
-        delete process.env.PI_ACTIVITY_PROJECT_DIR
-      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+        delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
+      else process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = originalProjectDir
       await rm(dir, { recursive: true, force: true })
     }
   })
 
   it('returns the newest activity per project in most-recent order', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-activity-grouped-'))
+    const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-grouped-'))
     const sessionsDir = join(dir, 'sessions')
     const projectsDir = join(dir, 'projects')
     const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
-    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const originalProjectDir = process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
     const originalFetch = globalThis.fetch
 
     try {
@@ -547,7 +547,7 @@ describe('Activity API (in-process)', () => {
           status: 200,
         })
       process.env.PI_CODING_AGENT_SESSION_DIR = sessionsDir
-      process.env.PI_ACTIVITY_PROJECT_DIR = projectsDir
+      process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = projectsDir
 
       const res = await app.request('http://localhost/activity')
       const expected = [
@@ -571,18 +571,18 @@ describe('Activity API (in-process)', () => {
         delete process.env.PI_CODING_AGENT_SESSION_DIR
       else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
       if (originalProjectDir === undefined)
-        delete process.env.PI_ACTIVITY_PROJECT_DIR
-      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+        delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
+      else process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = originalProjectDir
       await rm(dir, { recursive: true, force: true })
     }
   })
 
   it('returns an empty array when no activity is available', async () => {
     const originalSessionDir = process.env.PI_CODING_AGENT_SESSION_DIR
-    const originalProjectDir = process.env.PI_ACTIVITY_PROJECT_DIR
+    const originalProjectDir = process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
     try {
       process.env.PI_CODING_AGENT_SESSION_DIR = '/nonexistent'
-      delete process.env.PI_ACTIVITY_PROJECT_DIR
+      delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
       const res = await app.request('http://localhost/activity')
       assert.deepStrictEqual(await res.json(), [])
     } finally {
@@ -590,8 +590,8 @@ describe('Activity API (in-process)', () => {
         delete process.env.PI_CODING_AGENT_SESSION_DIR
       else process.env.PI_CODING_AGENT_SESSION_DIR = originalSessionDir
       if (originalProjectDir === undefined)
-        delete process.env.PI_ACTIVITY_PROJECT_DIR
-      else process.env.PI_ACTIVITY_PROJECT_DIR = originalProjectDir
+        delete process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR
+      else process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = originalProjectDir
     }
   })
 

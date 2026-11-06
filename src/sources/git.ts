@@ -120,7 +120,7 @@ const readRepositoryActivity = async (
 
 // Reads repositories directly inside the configured project directory.
 export const readGitActivity = async (
-  projectDir = process.env.PI_ACTIVITY_PROJECT_DIR,
+  projectDir = process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR,
 ): Promise<Activity[]> => {
   if (!projectDir) return []
 

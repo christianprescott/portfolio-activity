@@ -12,13 +12,13 @@ export const cardStyles = css`
     gap: 0.5rem;
   }
   div.card {
-    border: 1px solid var(--pi-activity-border-color, currentColor);
+    border: 1px solid var(--portfolio-activity-border-color, currentColor);
     border-radius: 0.5rem;
     padding: 1rem;
     overflow: hidden;
   }
   div.indicator {
-    background-color: var(--pi-activity-color, currentColor);
+    background-color: var(--portfolio-activity-color, currentColor);
     border-radius: 30%;
     aspect-ratio: 1 / 1;
     display: inline-block;

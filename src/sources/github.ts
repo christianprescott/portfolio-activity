@@ -12,7 +12,7 @@ export const verifyPublicGitHubRepository = async (
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          'User-Agent': 'pi-activity',
+          'User-Agent': 'portfolio-activity',
         },
         signal: AbortSignal.timeout(5000),
       },

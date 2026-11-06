@@ -1,27 +1,27 @@
-# Pi Activity
+# Portfolio Activity
 
 Share your coding habits with the public. Great for bragging on your portfolio site.
 
-`pi-activity` serves read-only API endpoints to expose your coding activity and a component to display it.
+`portfolio-activity` serves read-only API endpoints to expose your coding activity and a component to display it.
 
 ## Getting started
 
-Deploy pi-activity alongside your Pi agent, git repo, or project directory.
+Deploy portfolio-activity alongside your Pi agent, git repo, or project directory.
 
 ```sh
 # TODO: how to start an instance
-docker run --rm -p 3000:3000 pi-activity
+docker run --rm -p 3000:3000 portfolio-activity
 ```
 
 ### Environment Variables
 
-Configure pi-activity's environment and behavior.
+Configure portfolio-activity's environment and behavior.
 
 - `PORT` - port to listen on (default `3000`)
 - `HOST` - host to bind (default `0.0.0.0`)
 - `PI_CODING_AGENT_DIR` - Pi config directory, where sessions/ are found. (default `~/.pi/agent`)
 - `PI_CODING_AGENT_SESSION_DIR` - Pi session storage directory. Overrides `PI_CODING_AGENT_DIR`
-- `PI_ACTIVITY_PROJECT_DIR` - directory containing project directories for Git and filesystem activity. These sources are skipped when this is unset.
+- `PORTFOLIO_ACTIVITY_PROJECT_DIR` - directory containing project directories for Git and filesystem activity. These sources are skipped when this is unset.
 
 ## Development
 
@@ -48,6 +48,8 @@ services:
 ```
 
 ### Tests
+
+Tests are currently entirely AI generated and I make no claimes to their effectiveness.
 
 ```sh
 docker compose run --rm app npm test
