@@ -23,8 +23,7 @@ export class ActivityCard extends LitElement {
       a:visited {
         color: var(--portfolio-activity-color);
       }
-      a[href]:hover,
-      a[href]:focus-visible {
+      a[href] {
         color: var(--portfolio-activity-color-active);
       }
       a github-icon {

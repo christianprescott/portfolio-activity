@@ -70,14 +70,21 @@ test('renders the icon and private text with a disabled link when repoUrl is uns
   assert.equal(rendered.values[8], 'private')
 })
 
-test('applies the active link color only to navigable hover and focus-visible links', () => {
+test('applies the active link color to enabled links while preserving the disabled color', () => {
   const styles = ActivityCard.styles[1] as { cssText: string }
 
   assert.match(
     styles.cssText,
-    /a\[href\]:hover,\s*a\[href\]:focus-visible\s*\{\s*color:\s*var\(--portfolio-activity-color-active\);\s*\}/,
+    /a\[href\]\s*\{\s*color:\s*var\(--portfolio-activity-color-active\);\s*\}/,
   )
-  assert.doesNotMatch(styles.cssText, /a:hover\s*\{/)
+  assert.match(
+    styles.cssText,
+    /a:link,\s*a:visited\s*\{\s*color:\s*var\(--portfolio-activity-color\);\s*\}/,
+  )
+  assert.doesNotMatch(
+    styles.cssText,
+    /a\s*\{\s*color:\s*var\(--portfolio-activity-color-active\)/,
+  )
   assert.doesNotMatch(styles.cssText, /outline\s*:/)
 })
 
