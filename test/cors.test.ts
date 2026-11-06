@@ -2,7 +2,8 @@ import assert from 'node:assert'
 import { describe, it } from 'node:test'
 
 const originalAllowedOrigins = process.env.PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS
-process.env.PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS = 'https://portfolio.example'
+process.env.PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS =
+  ' https://portfolio.example ; https://second.example '
 const { app: serverApp } = await import('../src/server.ts')
 
 if (originalAllowedOrigins === undefined) {
@@ -37,9 +38,22 @@ describe('activity CORS', () => {
     }
   })
 
-  it('does not grant CORS access to a different or comma-separated origin', async () => {
+  it('allows each semicolon-separated origin after trimming whitespace', async () => {
+    const res = await serverApp.request('http://localhost/activity', {
+      headers: { Origin: 'https://second.example' },
+    })
+
+    assert.strictEqual(res.status, 200)
+    assert.strictEqual(
+      res.headers.get('access-control-allow-origin'),
+      'https://second.example',
+    )
+  })
+
+  it('requires an exact configured origin and does not split comma-separated origins', async () => {
     for (const origin of [
       'https://attacker.example',
+      'https://portfolio.example/',
       'https://portfolio.example,https://second.example',
     ]) {
       const res = await serverApp.request('http://localhost/activity', {

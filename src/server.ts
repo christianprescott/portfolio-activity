@@ -56,13 +56,18 @@ const getActivity = createRoute({
 // Create Hono app
 export const app = new OpenAPIHono()
 
-const allowedOrigin = process.env.PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS
+const allowedOrigins = new Set(
+  (process.env.PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS ?? '')
+    .split(';')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+)
 
-// Allow the configured portfolio origin to load the module and access every route.
+// Allow configured portfolio origins to load the module and access every route.
 app.use(
   '*',
   cors({
-    origin: (origin) => (origin === allowedOrigin ? origin : null),
+    origin: (origin) => (allowedOrigins.has(origin) ? origin : null),
     allowMethods: ['GET', 'HEAD', 'OPTIONS'],
   }),
 )
