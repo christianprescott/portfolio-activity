@@ -38,7 +38,7 @@ const fetchActivities = async (
 
 export class PortfolioActivity extends LitElement {
   static properties = {
-    displayName: { type: String, attribute: 'display-name' },
+    displayName: { type: String },
     count: { type: Number },
     src: { type: String },
     state: { state: true },

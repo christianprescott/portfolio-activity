@@ -12,6 +12,17 @@ Deploy portfolio-activity alongside your Pi agent, git repo, or project director
 docker run --rm -p 3000:3000 ghcr.io/christianprescott/portfolio-activity:latest
 ```
 
+Then load the custom element on your page and configure it for your host:
+
+```sh
+<head>
+  <script type="module" src="https://yourdomain.example/dist/portfolio-activity.js"></script>
+</head>
+<body>
+  <portfolio-activity count="4" displayName="Christian" />
+</body>
+```
+
 ### Environment Variables
 
 Configure portfolio-activity's environment and behavior.

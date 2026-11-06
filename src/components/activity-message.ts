@@ -29,7 +29,7 @@ const activityMessages: Record<
 export class ActivityMessage extends LitElement {
   static properties = {
     activeAt: { attribute: false },
-    displayName: { type: String, attribute: 'display-name' },
+    displayName: { type: String },
     source: { type: String },
   }
 
