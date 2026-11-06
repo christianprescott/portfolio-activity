@@ -9,7 +9,13 @@ Share your coding habits with the public. Great for bragging on your portfolio s
 Deploy portfolio-activity alongside your Pi agent, git repo, or project directory.
 
 ```sh
-docker run --rm -p 3000:3000 ghcr.io/christianprescott/portfolio-activity:latest
+docker run --rm --name portfolio-activity -p 3000:3000 \
+  -v /path/to/your/projects:/workspace:ro \
+  -v ~/.pi/agent:/data/.pi/agent:ro \
+  -e PORTFOLIO_ACTIVITY_PROJECT_DIR=/workspace \
+  -e PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS=https://yourdomain.example \
+  -e PI_CODING_AGENT_DIR=/data/.pi/agent \
+  ghcr.io/christianprescott/portfolio-activity:latest
 ```
 
 Then load the custom element on your page and configure it for your host:
