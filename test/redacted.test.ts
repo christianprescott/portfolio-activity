@@ -36,7 +36,7 @@ test('renders default slot content with the configured label', () => {
   assert.ok(RedactedText.observedAttributes.includes('label'))
 })
 
-test('randomizes rotation once per component within five degrees', () => {
+test('randomizes rotation once per component within twelve degrees', () => {
   const originalRandom = Math.random
   let randomCalls = 0
   Math.random = () => {
@@ -52,13 +52,13 @@ test('randomizes rotation once per component within five degrees', () => {
     const second = new RedactedText()
     const secondRotation = (second.render() as { values: unknown[] }).values[0]
 
-    assert.equal(firstRotation, 2.5)
+    assert.equal(firstRotation, 6)
     assert.equal(rerenderedRotation, firstRotation)
-    assert.equal(secondRotation, -2.5)
-    assert.ok((firstRotation as number) >= -5)
-    assert.ok((firstRotation as number) <= 5)
-    assert.ok((secondRotation as number) >= -5)
-    assert.ok((secondRotation as number) <= 5)
+    assert.equal(secondRotation, -6)
+    assert.ok((firstRotation as number) >= -12)
+    assert.ok((firstRotation as number) <= 12)
+    assert.ok((secondRotation as number) >= -12)
+    assert.ok((secondRotation as number) <= 12)
     assert.equal(randomCalls, 2)
     assert.match(
       RedactedText.styles.cssText,

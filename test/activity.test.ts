@@ -3,12 +3,18 @@ import fs from 'node:fs'
 import { mkdtemp, mkdir, rm, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, it, before } from 'node:test'
+import { describe, it, before, beforeEach } from 'node:test'
 import git from 'isomorphic-git'
-import { app } from '../src/server.ts'
 import { readPiActivity } from '../src/sources/pi.ts'
 import { readGitActivity } from '../src/sources/git.ts'
 import { verifyPublicGitHubRepository } from '../src/sources/github.ts'
+
+const originalCacheSeconds = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+if (originalCacheSeconds === undefined)
+  process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = '60'
+const { app, resetActivityCache } = await import('../src/server.ts')
+if (originalCacheSeconds === undefined)
+  delete process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
 
 const gitActivity = (title: string, activeAt: string, repoUrl?: string) => ({
   title,
@@ -289,6 +295,7 @@ describe('Git activity', () => {
       }
 
       process.env.PORTFOLIO_ACTIVITY_PROJECT_DIR = dir
+      resetActivityCache()
       const res = await app.request('http://localhost/activity')
       assert.deepStrictEqual(
         (
@@ -407,6 +414,7 @@ describe('Git activity', () => {
 
 // In-process tests using Hono's app.request()
 describe('Activity API (in-process)', () => {
+  beforeEach(() => resetActivityCache())
   it('merges verified repo details and checks only the ten newest projects', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'portfolio-activity-verified-github-'))
     const projectsDir = join(dir, 'projects')
@@ -492,6 +500,12 @@ describe('Activity API (in-process)', () => {
       assert.strictEqual(activities[9]?.title, 'project-09')
       assert.strictEqual(activities[10]?.title, undefined)
       assert.strictEqual(activities[10]?.repoUrl, undefined)
+
+      const limitedResponse = await app.request(
+        'http://localhost/activity?count=4',
+      )
+      assert.deepStrictEqual(await limitedResponse.json(), activities.slice(0, 4))
+      assert.strictEqual(fetchCount, 10)
     } finally {
       globalThis.fetch = originalFetch
       if (originalSessionDir === undefined)

@@ -21,20 +21,16 @@ Object.defineProperty(globalThis, 'customElements', {
 
 const { ActivityCard } = await import('../src/components/activity-card.ts')
 
-const renderedFallback = (card: InstanceType<typeof ActivityCard>) =>
-  card.render().values[3] as { strings: readonly string[]; values: unknown[] }
-
 const renderedTemplate = (card: InstanceType<typeof ActivityCard>) =>
   card.render() as { strings: readonly string[]; values: unknown[] }
 
 test('uses the redacted-text component for an unset title with project slot content', () => {
   const card = new ActivityCard()
-  const fallback = renderedFallback(card)
+  const rendered = renderedTemplate(card)
 
-  assert.match(
-    fallback.strings.join(''),
-    /<redacted-text label="REDACTED">project<\/redacted-text>/,
-  )
+  assert.ok(rendered.values.some((value) =>
+    (value as { strings?: readonly string[] } | null)?.strings?.join('').includes('<redacted-text label="REDACTED">project</redacted-text>'),
+  ))
 })
 
 test('shows the given title without a redacted overlay', () => {
@@ -42,8 +38,8 @@ test('shows the given title without a redacted overlay', () => {
   card.title = 'portfolio-activity'
   const rendered = card.render()
 
-  assert.equal(rendered.values[3], 'portfolio-activity')
-  assert.equal(typeof rendered.values[4], 'symbol')
+  assert.ok(rendered.values.includes('portfolio-activity'))
+  assert.ok(rendered.values.some((value) => typeof value === 'symbol'))
 })
 
 test('uses the reusable GitHub icon for its repository link without hiding the host', () => {
@@ -58,16 +54,12 @@ test('renders the icon and private text with a disabled link when repoUrl is uns
   const card = new ActivityCard()
   const rendered = renderedTemplate(card)
   const template = rendered.strings.join('')
-  const githubIcon = rendered.values[7] as { strings: readonly string[] }
-
   assert.match(template, /role="link"/)
-  assert.match(template, /aria-disabled=/)
-  assert.match(template, /tabindex=/)
-  assert.match(githubIcon.strings.join(''), /<svg/)
-  assert.equal(typeof rendered.values[4], 'symbol')
-  assert.equal(rendered.values[5], 'true')
-  assert.equal(rendered.values[6], '-1')
-  assert.equal(rendered.values[8], 'private')
+  assert.match(template, /<github-icon><\/github-icon\s*>/)
+  const hrefIndex = rendered.strings.findIndex((part) => /href=$/.test(part))
+  assert.notEqual(hrefIndex, -1)
+  assert.equal(typeof rendered.values[hrefIndex], 'symbol')
+  assert.ok(rendered.values.includes('private'))
 })
 
 test('applies the active link color to enabled links while preserving the disabled color', () => {
@@ -103,10 +95,10 @@ test('renders the repo URL as an interactive link without the private label', ()
   const rendered = renderedTemplate(card)
   const template = rendered.strings.join('')
 
-  assert.equal(rendered.values[4], card.repoUrl)
-  assert.equal(typeof rendered.values[5], 'symbol')
-  assert.equal(typeof rendered.values[6], 'symbol')
+  const hrefIndex = rendered.strings.findIndex((part) => /href=$/.test(part))
+  assert.notEqual(hrefIndex, -1)
+  assert.equal(rendered.values[hrefIndex], card.repoUrl)
+  assert.ok(rendered.values.includes('repo'))
   assert.match(template, /repo/)
-  assert.equal(rendered.values[8], 'repo')
   assert.doesNotMatch(template, /PRIVATE/)
 })

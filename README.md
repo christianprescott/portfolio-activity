@@ -38,6 +38,7 @@ Configure portfolio-activity's environment and behavior.
 - `PI_CODING_AGENT_DIR` - Pi config directory, where sessions/ are found. (default `~/.pi/agent`)
 - `PI_CODING_AGENT_SESSION_DIR` - Pi session storage directory. Overrides `PI_CODING_AGENT_DIR`
 - `PORTFOLIO_ACTIVITY_PROJECT_DIR` - directory containing project directories for Git and filesystem activity. These sources are skipped when this is unset.
+- `PORTFOLIO_ACTIVITY_CACHE_SECONDS` - positive integer cache interval in seconds. Unset disables caching; configured results (including errors) are reused within timestamp-aligned interval buckets.
 - `PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS` - optional semicolon-separated list of exact origins allowed to load the component module and access the API from a browser (for example, `https://portfolio.example;https://another.example`). Whitespace around each origin is trimmed. Leave unset to disable cross-origin access. Do not include paths or trailing slashes. Quote the value when setting it in a shell, since an unquoted semicolon ends a shell command.
 
 ## Development

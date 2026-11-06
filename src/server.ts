@@ -72,9 +72,25 @@ app.use(
   }),
 )
 
-// GET /activity endpoint
-app.openapi(getActivity, async (c) => {
-  const { count } = c.req.valid('query')
+export const createCache = <T>(build: () => Promise<T[]>) => {
+  const cacheSeconds = Number.isSafeInteger(Number(process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS)) && Number(process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS) > 0 ? Number(process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS) : 0
+  let cached: Record<number, Promise<T[]>> = {}
+  return {
+    reset: () => {
+      cached = {}
+    },
+    get: () => {
+      // Disabled by default; set a positive cache duration to reuse activity per time bucket.
+      if (cacheSeconds === 0) return build()
+      const currentTime = Date.now()
+      const bucket = Math.floor(currentTime / (cacheSeconds * 1000))
+      if (!cached[bucket]) cached = { [bucket]: build() }
+      return cached[bucket]
+    },
+  }
+}
+
+const buildActivity = async () => {
   const sources = await Promise.all([readPiActivity(), readGitActivity()])
   const activity = sources
     .flat()
@@ -87,8 +103,8 @@ app.openapi(getActivity, async (c) => {
       projects.set(entry.title, { ...latest, repoUrl: entry.repoUrl })
   })
 
-  const selected = [...projects.entries()].slice(0, count)
-  const response = await Promise.all(
+  const selected = [...projects.entries()].slice(0, 10)
+  return Promise.all(
     selected.map(async ([project, latest]) => {
       const repository = await verifyPublicGitHubRepository(latest.repoUrl)
       return {
@@ -98,7 +114,15 @@ app.openapi(getActivity, async (c) => {
       }
     }),
   )
-  return c.json(response, 200)
+}
+
+const activityCache = createCache(buildActivity)
+export const resetActivityCache = () => activityCache.reset()
+
+// GET /activity endpoint
+app.openapi(getActivity, async (c) => {
+  const { count } = c.req.valid('query')
+  return c.json((await activityCache.get()).slice(0, count), 200)
 })
 
 // GET /openapi.json endpoint, spec generated from the routes above
