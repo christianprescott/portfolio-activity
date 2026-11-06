@@ -38,6 +38,33 @@ describe('activity CORS', () => {
     }
   })
 
+  it('allows configured origins to load the component and read the API cross-origin', async () => {
+    for (const [path, contentType] of [
+      [
+        '/dist/portfolio-activity.js',
+        /^text\/javascript|^application\/javascript/,
+      ],
+      ['/activity', /^application\/json/],
+    ] as const) {
+      const res = await serverApp.request(`http://localhost${path}`, {
+        headers: { Origin: 'https://portfolio.example' },
+      })
+
+      assert.strictEqual(res.status, 200, path)
+      assert.match(res.headers.get('content-type') ?? '', contentType, path)
+      assert.strictEqual(
+        res.headers.get('access-control-allow-origin'),
+        'https://portfolio.example',
+        path,
+      )
+      assert.strictEqual(
+        res.headers.get('cross-origin-resource-policy'),
+        'cross-origin',
+        path,
+      )
+    }
+  })
+
   it('allows each semicolon-separated origin after trimming whitespace', async () => {
     const res = await serverApp.request('http://localhost/activity', {
       headers: { Origin: 'https://second.example' },
@@ -76,6 +103,10 @@ describe('activity CORS', () => {
     })
 
     assert.strictEqual(res.status, 204)
+    assert.strictEqual(
+      res.headers.get('cross-origin-resource-policy'),
+      'cross-origin',
+    )
     assert.strictEqual(
       res.headers.get('access-control-allow-origin'),
       'https://portfolio.example',

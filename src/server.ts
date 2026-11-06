@@ -9,6 +9,7 @@ import { verifyPublicGitHubRepository } from './sources/github.ts'
 import { swaggerUI } from '@hono/swagger-ui'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { cors } from 'hono/cors'
+import { secureHeaders } from 'hono/secure-headers'
 
 // Activity response, with one most-recent entry per project.
 export const Activity = z
@@ -64,6 +65,7 @@ const allowedOrigins = new Set(
 )
 
 // Allow configured portfolio origins to load the module and access every route.
+app.use('*', secureHeaders({ crossOriginResourcePolicy: 'cross-origin' }))
 app.use(
   '*',
   cors({
