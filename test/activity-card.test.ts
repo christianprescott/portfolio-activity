@@ -46,6 +46,14 @@ test('shows the given title without a redacted overlay', () => {
   assert.equal(typeof rendered.values[4], 'symbol')
 })
 
+test('uses the reusable GitHub icon for its repository link without hiding the host', () => {
+  const card = new ActivityCard()
+  const template = renderedTemplate(card).strings.join('')
+
+  assert.match(template, /<github-icon><\/github-icon\s*>/)
+  assert.doesNotMatch(template, /<github-icon[^>]*aria-hidden/)
+})
+
 test('renders the icon and private text with a disabled link when repoUrl is unset', () => {
   const card = new ActivityCard()
   const rendered = renderedTemplate(card)

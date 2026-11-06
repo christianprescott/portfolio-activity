@@ -1,5 +1,6 @@
 import { LitElement, css, html } from 'lit'
 import { cardStyles } from './card-styles.ts'
+import './github-icon.ts'
 
 export class LoadingCard extends LitElement {
   static styles = [
@@ -32,6 +33,19 @@ export class LoadingCard extends LitElement {
           background-position: -100% 0;
         }
       }
+      .repo-icon-placeholder {
+        visibility: hidden;
+        margin-inline-end: 0.25rem;
+      }
+      .w-6,
+      .w-12 {
+        font-family: var(--pi-activity-font-mono);
+      }
+      .w-6 {
+        width: 100%;
+        min-width: 2rem;
+        max-width: 6rem;
+      }
       .w-12 {
         width: 70%;
         min-width: 6rem;
@@ -49,6 +63,10 @@ export class LoadingCard extends LitElement {
       <div class="indicator"></div>
       <div class="loading w-12"><span>Loading</span></div>
       <div class="loading w-18"><span>Loading</span></div>
+      <div class="loading w-6">
+        <github-icon class="repo-icon-placeholder"></github-icon
+        ><span>Loading</span>
+      </div>
     </div>`
   }
 }
