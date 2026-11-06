@@ -10,11 +10,11 @@ import { readGitActivity } from '../src/sources/git.ts'
 import { verifyPublicGitHubRepository } from '../src/sources/github.ts'
 
 const originalCacheSeconds = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
-if (originalCacheSeconds === undefined)
-  process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = '60'
+process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = '60'
 const { app, resetActivityCache } = await import('../src/server.ts')
 if (originalCacheSeconds === undefined)
   delete process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+else process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = originalCacheSeconds
 
 const gitActivity = (title: string, activeAt: string, repoUrl?: string) => ({
   title,

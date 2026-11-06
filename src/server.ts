@@ -73,14 +73,15 @@ app.use(
 )
 
 export const createCache = <T>(build: () => Promise<T[]>) => {
-  const cacheSeconds = Number.isSafeInteger(Number(process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS)) && Number(process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS) > 0 ? Number(process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS) : 0
+  const configuredCacheSeconds = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+  const cacheSeconds = configuredCacheSeconds === undefined ? 60 : Number.isSafeInteger(Number(configuredCacheSeconds)) && Number(configuredCacheSeconds) >= 0 ? Number(configuredCacheSeconds) : 0
   let cached: Record<number, Promise<T[]>> = {}
   return {
     reset: () => {
       cached = {}
     },
     get: () => {
-      // Disabled by default; set a positive cache duration to reuse activity per time bucket.
+      // Set the duration to zero to disable caching.
       if (cacheSeconds === 0) return build()
       const currentTime = Date.now()
       const bucket = Math.floor(currentTime / (cacheSeconds * 1000))

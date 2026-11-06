@@ -8,6 +8,7 @@ services:
     environment:
       - PORT=3000
       - HOST=0.0.0.0
+      - PORTFOLIO_ACTIVITY_CACHE_SECONDS=0
     volumes:
       - ./public:/app/public
       - public-dist:/app/public/dist

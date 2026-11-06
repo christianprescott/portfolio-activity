@@ -57,18 +57,39 @@ describe('activity cache', () => {
     }
   })
 
-  it('does not cache when PORTFOLIO_ACTIVITY_CACHE_SECONDS is unset', async () => {
+  it('uses a 60 second cache when PORTFOLIO_ACTIVITY_CACHE_SECONDS is unset', async () => {
     const originalCacheSeconds = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+    const originalNow = Date.now
+    let time = 10_000
     try {
       delete process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+      Date.now = () => time
+      let calls = 0
+      const cache = createCache(async () => [++calls])
+      assert.deepEqual(await cache.get(), [1])
+      time = 59_999
+      assert.deepEqual(await cache.get(), [1])
+      time = 60_000
+      assert.deepEqual(await cache.get(), [2])
+    } finally {
+      Date.now = originalNow
+      if (originalCacheSeconds === undefined)
+        delete process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+      else process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = originalCacheSeconds
+    }
+  })
+
+  it('disables caching when explicitly set to zero', async () => {
+    const original = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+    try {
+      process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = '0'
       let calls = 0
       const cache = createCache(async () => [++calls])
       assert.deepEqual(await cache.get(), [1])
       assert.deepEqual(await cache.get(), [2])
     } finally {
-      if (originalCacheSeconds === undefined)
-        delete process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
-      else process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = originalCacheSeconds
+      if (original === undefined) delete process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+      else process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS = original
     }
   })
 

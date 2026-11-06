@@ -30,6 +30,8 @@ Then load the custom element on your page and configure it for your host:
 </body>
 ```
 
+Activity data is **public** within the access bounds you configure. Allowed origins and CORS control browser access, but are not access control; do not expose data you intend to keep private.
+
 ### Environment Variables
 
 Configure portfolio-activity's environment and behavior.
@@ -39,12 +41,12 @@ Configure portfolio-activity's environment and behavior.
 - `PI_CODING_AGENT_DIR` - Pi config directory, where sessions/ are found. (default `~/.pi/agent`)
 - `PI_CODING_AGENT_SESSION_DIR` - Pi session storage directory. Overrides `PI_CODING_AGENT_DIR`
 - `PORTFOLIO_ACTIVITY_PROJECT_DIR` - directory containing project directories for Git and filesystem activity. These sources are skipped when this is unset.
-- `PORTFOLIO_ACTIVITY_CACHE_SECONDS` - positive integer cache interval in seconds. Unset disables caching; configured results (including errors) are reused within timestamp-aligned interval buckets.
+- `PORTFOLIO_ACTIVITY_CACHE_SECONDS` - non-negative integer cache interval in seconds. Defaults to `60` when unset; set to `0` to disable caching. Cached results (including errors) are reused within timestamp-aligned interval buckets.
 - `PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS` - optional semicolon-separated list of exact origins allowed to load the component module and access the API from a browser (for example, `https://portfolio.example;https://another.example`). Whitespace around each origin is trimmed. Leave unset to disable cross-origin access. Do not include paths or trailing slashes. Quote the value when setting it in a shell, since an unquoted semicolon ends a shell command.
 
 ## Development
 
-Start the web server and the frontend dev server. Visit the app root to preview the component UI.
+Start the web server and the frontend dev server. Visit the app root to preview the component UI. This Docker Compose project is intended for development and is not suitable for production.
 
 ```sh
 docker compose up --build
