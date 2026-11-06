@@ -17,7 +17,12 @@ export const verifyPublicGitHubRepository = async (
         signal: AbortSignal.timeout(5000),
       },
     )
-    if (!response.ok) return undefined
+    if (!response.ok) {
+      console.error(
+        `GitHub repository verification failed: non-OK response (${response.status}).`,
+      )
+      return undefined
+    }
 
     const data: unknown = await response.json()
     if (
