@@ -1,6 +1,8 @@
 services:
   app:
     build: .
+    cap_drop:
+      - ALL
     ports:
       - '3000:3000'
     environment:
