@@ -25,11 +25,11 @@ describe('activity-message', () => {
     useFixedClock(t)
     assert.equal(
       messageText('git', activityAt(-19 * 60_000)),
-      'Ada is making a commit right now',
+      'Ada is committing right now',
     )
     assert.equal(
       messageText('pi', activityAt(-19 * 60_000)),
-      'Ada is writing code right now',
+      'Ada is working agentically right now',
     )
   })
 
@@ -37,11 +37,11 @@ describe('activity-message', () => {
     useFixedClock(t)
     assert.equal(
       messageText('git', activityAt(-20 * 60_000)),
-      'Ada made a commit 20 minutes ago',
+      'Ada committed 20 minutes ago',
     )
     assert.equal(
       messageText('pi', activityAt(-20 * 60_000)),
-      'Ada was writing code 20 minutes ago',
+      'Ada was working agentically 20 minutes ago',
     )
   })
 
@@ -49,19 +49,19 @@ describe('activity-message', () => {
     useFixedClock(t)
     assert.equal(
       messageText('pi', activityAt(-86_400_000)),
-      'Ada was writing code yesterday',
+      'Ada was working agentically yesterday',
     )
     assert.equal(
       messageText('pi', activityAt(86_400_000)),
-      'Ada was writing code tomorrow',
+      'Ada was working agentically tomorrow',
     )
     assert.equal(
       messageText('pi', activityAt(-14 * 86_400_000)),
-      'Ada was writing code 2 weeks ago',
+      'Ada was working agentically 2 weeks ago',
     )
     assert.equal(
       messageText('pi', activityAt(3 * 3_600_000)),
-      'Ada was writing code in 3 hours',
+      'Ada was working agentically in 3 hours',
     )
   })
 
@@ -69,7 +69,7 @@ describe('activity-message', () => {
     useFixedClock(t)
     assert.equal(
       messageText('git', activityAt(5 * 60_000)),
-      'Ada made a commit in 5 minutes',
+      'Ada committed in 5 minutes',
     )
   })
 })

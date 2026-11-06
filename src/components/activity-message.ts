@@ -17,12 +17,12 @@ const activityMessages: Record<
   { present: string; past: string }
 > = {
   git: {
-    present: 'is making a commit',
-    past: 'made a commit',
+    present: 'is committing',
+    past: 'committed',
   },
   pi: {
-    present: 'is writing code',
-    past: 'was writing code',
+    present: 'is working agentically',
+    past: 'was working agentically',
   },
 }
 
