@@ -92,6 +92,7 @@ export const createCache = <T>(build: () => Promise<T[]>) => {
 
 const buildActivity = async () => {
   const sources = await Promise.all([readPiActivity(), readGitActivity()])
+  console.log(`Fetching activity from ${sources.length} sources`)
   const activity = sources
     .flat()
     .sort((a, b) => b.activeAt.localeCompare(a.activeAt))

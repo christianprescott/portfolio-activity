@@ -12,6 +12,7 @@ Deploy portfolio-activity alongside your Pi agent, git repo, or project director
 docker run --rm --name portfolio-activity -p 3000:3000 \
   -v /path/to/your/projects:/workspace:ro \
   -v ~/.pi/agent:/data/.pi/agent:ro \
+  -e PORTFOLIO_ACTIVITY_CACHE_SECONDS=60 \
   -e PORTFOLIO_ACTIVITY_PROJECT_DIR=/workspace \
   -e PORTFOLIO_ACTIVITY_ALLOWED_ORIGINS=https://yourdomain.example \
   -e PI_CODING_AGENT_DIR=/data/.pi/agent \
