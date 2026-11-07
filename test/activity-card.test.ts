@@ -28,9 +28,13 @@ test('uses the redacted-text component for an unset title with project slot cont
   const card = new ActivityCard()
   const rendered = renderedTemplate(card)
 
-  assert.ok(rendered.values.some((value) =>
-    (value as { strings?: readonly string[] } | null)?.strings?.join('').includes('<redacted-text label="REDACTED">project</redacted-text>'),
-  ))
+  assert.ok(
+    rendered.values.some((value) =>
+      (value as { strings?: readonly string[] } | null)?.strings
+        ?.join('')
+        .includes('<redacted-text label="REDACTED">project</redacted-text>'),
+    ),
+  )
 })
 
 test('shows the given title without a redacted overlay', () => {
@@ -80,13 +84,35 @@ test('applies the active link color to enabled links while preserving the disabl
   assert.doesNotMatch(styles.cssText, /outline\s*:/)
 })
 
+test('fills the row height and keeps the repository link below the message', () => {
+  const card = new ActivityCard()
+  const template = renderedTemplate(card).strings.join('')
+  const styles = ActivityCard.styles[1] as { cssText: string }
+
+  assert.match(
+    styles.cssText,
+    /:host\s*\{\s*display:\s*flex;\s*flex-direction:\s*column;\s*\}/,
+  )
+  assert.match(
+    styles.cssText,
+    /\.card\s*\{\s*flex:\s*1;\s*grid-template-rows:\s*auto minmax\(0, 1fr\) auto;\s*\}/,
+  )
+  assert.match(
+    template,
+    /<div class="mono bold">[\s\S]*?<\/div>\s*<div>\s*<slot><\/slot>\s*<\/div>\s*<a/,
+  )
+})
+
 test('keeps the repository link sized to its contents', () => {
   const card = new ActivityCard()
   const template = renderedTemplate(card).strings.join('')
   const styles = ActivityCard.styles[1] as { cssText: string }
 
   assert.match(template, /class="mono repo-link"/)
-  assert.match(styles.cssText, /a\.repo-link\s*\{\s*justify-self:\s*start;\s*\}/)
+  assert.match(
+    styles.cssText,
+    /a\.repo-link\s*\{\s*justify-self:\s*start;\s*\}/,
+  )
 })
 
 test('renders the repo URL as an interactive link without the private label', () => {

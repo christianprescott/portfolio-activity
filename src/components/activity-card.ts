@@ -19,6 +19,14 @@ export class ActivityCard extends LitElement {
   static styles = [
     cardStyles,
     css`
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+      .card {
+        flex: 1;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
       a:link,
       a:visited {
         color: var(--portfolio-activity-color);
@@ -80,8 +88,7 @@ export class ActivityCard extends LitElement {
         href=${this.repoUrl || nothing}
         target="_blank"
         rel="noopener noreferrer"
-        ><github-icon></github-icon
-        >${this.repoUrl ? 'repo' : 'private'}</a
+        ><github-icon></github-icon>${this.repoUrl ? 'repo' : 'private'}</a
       >
     </div>`
   }
