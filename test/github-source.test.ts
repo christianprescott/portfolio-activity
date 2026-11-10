@@ -47,6 +47,26 @@ test('caches repository lookups independently and expires at configured boundari
   }
 })
 
+test('logs the repository candidate immediately before fetching it', async () => {
+  const verify = await loadVerifier('0')
+  const originalFetch = globalThis.fetch
+  const originalLog = console.log
+  const events: string[] = []
+  console.log = (...args: unknown[]) => events.push(args.join(' '))
+  globalThis.fetch = async () => {
+    events.push('fetch')
+    return Response.json({ private: false, name: 'repo' })
+  }
+
+  try {
+    assert.equal(await verify('owner/repo'), 'https://github.com/owner/repo')
+    assert.deepEqual(events, ['Fetching repo owner/repo', 'fetch'])
+  } finally {
+    globalThis.fetch = originalFetch
+    console.log = originalLog
+  }
+})
+
 test('uses a one-hour cache by default', async () => {
   const verify = await loadVerifier(undefined)
   const originalFetch = globalThis.fetch

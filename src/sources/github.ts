@@ -19,6 +19,7 @@ export const verifyPublicGitHubRepository = async (
 
   return await githubCache.get(candidate, async () => {
     try {
+      console.log(`Fetching repo ${candidate}`)
       const response = await fetch(
         `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
         {
