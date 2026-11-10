@@ -10,6 +10,7 @@ import { swaggerUI } from '@hono/swagger-ui'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
+import { createCache } from './cache.ts'
 
 // Activity response, with one most-recent entry per project.
 export const Activity = z
@@ -74,25 +75,6 @@ app.use(
   }),
 )
 
-export const createCache = <T>(build: () => Promise<T[]>) => {
-  const configuredCacheSeconds = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
-  const cacheSeconds = configuredCacheSeconds === undefined ? 60 : Number.isSafeInteger(Number(configuredCacheSeconds)) && Number(configuredCacheSeconds) >= 0 ? Number(configuredCacheSeconds) : 0
-  let cached: Record<number, Promise<T[]>> = {}
-  return {
-    reset: () => {
-      cached = {}
-    },
-    get: () => {
-      // Set the duration to zero to disable caching.
-      if (cacheSeconds === 0) return build()
-      const currentTime = Date.now()
-      const bucket = Math.floor(currentTime / (cacheSeconds * 1000))
-      if (!cached[bucket]) cached = { [bucket]: build() }
-      return cached[bucket]
-    },
-  }
-}
-
 const buildActivity = async () => {
   const sources = await Promise.all([readPiActivity(), readGitActivity()])
   console.log(`Fetching activity from ${sources.length} sources`)
@@ -120,13 +102,21 @@ const buildActivity = async () => {
   )
 }
 
-const activityCache = createCache(buildActivity)
+const configuredCacheSeconds = process.env.PORTFOLIO_ACTIVITY_CACHE_SECONDS
+const portfolioActivityCacheSeconds =
+  configuredCacheSeconds === undefined ? 60 : Number(configuredCacheSeconds)
+const activityCache = createCache<z.infer<typeof Activity>>({
+  expiration: portfolioActivityCacheSeconds,
+})
 export const resetActivityCache = () => activityCache.reset()
 
 // GET /activity endpoint
 app.openapi(getActivity, async (c) => {
   const { count } = c.req.valid('query')
-  return c.json((await activityCache.get()).slice(0, count), 200)
+  return c.json(
+    (await activityCache.get('activity', buildActivity)).slice(0, count),
+    200,
+  )
 })
 
 // GET /openapi.json endpoint, spec generated from the routes above
